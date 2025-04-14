@@ -6,8 +6,12 @@
 #include "pio_usb.h"
 
 // USB Host configuration
-#define HOST_PIN_DP   16   // Pin used as D+ for host, D- = D+ + 1
+#define HOST_PIN_DP   15   // Pin used as D+ for host, D- = D+ + 1
 #include "EZ_USB_MIDI_HOST.h"
+
+
+#define LED_IN_PIN 29
+#define LED_OUT_PIN 19
 
 // Serial MIDI pins configuration - can be changed as needed
 int serialRxPin = 1;  // GPIO pin for Serial1 RX
@@ -60,6 +64,10 @@ void usbd_onProgramChange(byte channel, byte program);
 void usbd_onAftertouch(byte channel, byte pressure);
 void usbd_onPitchBend(byte channel, int bend);
 void usbd_onSysEx(byte * array, unsigned size);
+void usbd_onClock();
+void usbd_onStart();
+void usbd_onContinue();
+void usbd_onStop();
 
 // Serial MIDI message handlers
 void serial_onNoteOn(byte channel, byte note, byte velocity);
@@ -90,6 +98,12 @@ MidiStopFunctionPtr onMidiStop = usbh_onMidiStopHandle;
 
 // Setup function for core 0
 void setup() {
+  // Configure LED pins
+  pinMode(LED_IN_PIN, OUTPUT);
+  pinMode(LED_OUT_PIN, OUTPUT);
+  digitalWrite(LED_IN_PIN, LOW);
+  digitalWrite(LED_OUT_PIN, LOW);
+  
   // Configure Serial1 pins
   Serial1.setRX(serialRxPin);
   Serial1.setTX(serialTxPin);
@@ -106,6 +120,10 @@ void setup() {
   USB_D.setHandleAfterTouchChannel(usbd_onAftertouch);
   USB_D.setHandlePitchBend(usbd_onPitchBend);
   USB_D.setHandleSystemExclusive(usbd_onSysEx);
+  USB_D.setHandleClock(usbd_onClock);
+  USB_D.setHandleStart(usbd_onStart);
+  USB_D.setHandleContinue(usbd_onContinue);
+  USB_D.setHandleStop(usbd_onStop);
   
   // Initialize Serial MIDI
   SERIAL_M.begin(MIDI_CHANNEL_OMNI);
@@ -150,8 +168,8 @@ void loop() {
   // Process Serial MIDI
   SERIAL_M.read();
   
-  // Blink LED to indicate activity
-  blinkLED();
+  // Handle LED indicators
+  handleLEDs();
 }
 
 // Setup function for core 1 (USB Host)
@@ -192,18 +210,43 @@ void loop1() {
   USBHost.task();
 }
 
-// LED blink function to indicate activity
-static void blinkLED() {
-  const uint32_t intervalMs = 1000;
-  static uint32_t startMs = 0;
-  static bool ledState = false;
+// Shared variables for LED state
+static uint32_t inLedStartMs = 0;
+static bool inLedActive = false;
+static uint32_t outLedStartMs = 0;
+static bool outLedActive = false;
+
+// LED handling functions for MIDI activity
+static void handleLEDs() {
+  // Handle LED_IN_PIN (for incoming serial MIDI)
+  // If LED is active and 50ms has passed, turn it off
+  if (inLedActive && (millis() - inLedStartMs >= 50)) {
+    digitalWrite(LED_IN_PIN, LOW);
+    inLedActive = false;
+  }
   
-  if (millis() - startMs < intervalMs)
-    return;
-    
-  startMs += intervalMs;
-  ledState = !ledState;
-  digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW); 
+  // Handle LED_OUT_PIN (for outgoing serial MIDI)
+  // If LED is active and 50ms has passed, turn it off
+  if (outLedActive && (millis() - outLedStartMs >= 50)) {
+    digitalWrite(LED_OUT_PIN, LOW);
+    outLedActive = false;
+  }
+}
+
+// Function to trigger the input LED for 50ms
+static void triggerInLED() {
+  // Turn on LED and record the time
+  digitalWrite(LED_IN_PIN, HIGH);
+  inLedStartMs = millis();
+  inLedActive = true;
+}
+
+// Function to trigger the output LED for 50ms
+static void triggerOutLED() {
+  // Turn on LED and record the time
+  digitalWrite(LED_OUT_PIN, HIGH);
+  outLedStartMs = millis();
+  outLedActive = true;
 }
 
 // USB Host MIDI message handlers
@@ -217,6 +260,7 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendNoteOff(note, velocity, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
@@ -227,6 +271,7 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendNoteOn(note, velocity, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
@@ -237,6 +282,7 @@ void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendAfterTouch(note, amount, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
@@ -247,6 +293,7 @@ void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendControlChange(controller, value, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onProgramChangeHandle(byte channel, byte program) {
@@ -257,6 +304,7 @@ void usbh_onProgramChangeHandle(byte channel, byte program) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendProgramChange(program, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onAftertouchHandle(byte channel, byte value) {
@@ -267,6 +315,7 @@ void usbh_onAftertouchHandle(byte channel, byte value) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendAfterTouch(value, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onPitchBendHandle(byte channel, int value) {
@@ -277,6 +326,7 @@ void usbh_onPitchBendHandle(byte channel, int value) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendPitchBend(value, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onSysExHandle(byte * array, unsigned size) {
@@ -287,6 +337,7 @@ void usbh_onSysExHandle(byte * array, unsigned size) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendSysEx(size, array);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onMidiClockHandle() {
@@ -297,6 +348,7 @@ void usbh_onMidiClockHandle() {
   
   // Forward to Serial MIDI
   SERIAL_M.sendRealTime(midi::Clock);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onMidiStartHandle() {
@@ -307,6 +359,7 @@ void usbh_onMidiStartHandle() {
   
   // Forward to Serial MIDI
   SERIAL_M.sendRealTime(midi::Start);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onMidiContinueHandle() {
@@ -317,6 +370,7 @@ void usbh_onMidiContinueHandle() {
   
   // Forward to Serial MIDI
   SERIAL_M.sendRealTime(midi::Continue);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbh_onMidiStopHandle() {
@@ -327,6 +381,7 @@ void usbh_onMidiStopHandle() {
   
   // Forward to Serial MIDI
   SERIAL_M.sendRealTime(midi::Stop);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 // USB Device MIDI message handlers
@@ -343,6 +398,7 @@ void usbd_onNoteOn(byte channel, byte note, byte velocity) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendNoteOn(note, velocity, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onNoteOff(byte channel, byte note, byte velocity) {
@@ -356,6 +412,7 @@ void usbd_onNoteOff(byte channel, byte note, byte velocity) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendNoteOff(note, velocity, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onControlChange(byte channel, byte controller, byte value) {
@@ -369,6 +426,7 @@ void usbd_onControlChange(byte channel, byte controller, byte value) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendControlChange(controller, value, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onProgramChange(byte channel, byte program) {
@@ -382,6 +440,7 @@ void usbd_onProgramChange(byte channel, byte program) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendProgramChange(program, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onAftertouch(byte channel, byte pressure) {
@@ -395,6 +454,7 @@ void usbd_onAftertouch(byte channel, byte pressure) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendAfterTouch(pressure, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onPitchBend(byte channel, int bend) {
@@ -408,6 +468,7 @@ void usbd_onPitchBend(byte channel, int bend) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendPitchBend(bend, channel);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 void usbd_onSysEx(byte * array, unsigned size) {
@@ -421,12 +482,75 @@ void usbd_onSysEx(byte * array, unsigned size) {
   
   // Forward to Serial MIDI
   SERIAL_M.sendSysEx(size, array);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
+}
+
+// USB Device MIDI real-time message handlers
+// These forward messages to USB Host MIDI and Serial MIDI
+
+void usbd_onClock() {
+  Serial.println("USB Device: MIDI Clock");
+  
+  // Forward to USB Host MIDI
+  auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+  if (intf != nullptr) {
+    intf->sendRealTime(midi::Clock);
+  }
+  
+  // Forward to Serial MIDI
+  SERIAL_M.sendRealTime(midi::Clock);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
+}
+
+void usbd_onStart() {
+  Serial.println("USB Device: MIDI Start");
+  
+  // Forward to USB Host MIDI
+  auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+  if (intf != nullptr) {
+    intf->sendRealTime(midi::Start);
+  }
+  
+  // Forward to Serial MIDI
+  SERIAL_M.sendRealTime(midi::Start);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
+}
+
+void usbd_onContinue() {
+  Serial.println("USB Device: MIDI Continue");
+  
+  // Forward to USB Host MIDI
+  auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+  if (intf != nullptr) {
+    intf->sendRealTime(midi::Continue);
+  }
+  
+  // Forward to Serial MIDI
+  SERIAL_M.sendRealTime(midi::Continue);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
+}
+
+void usbd_onStop() {
+  Serial.println("USB Device: MIDI Stop");
+  
+  // Forward to USB Host MIDI
+  auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+  if (intf != nullptr) {
+    intf->sendRealTime(midi::Stop);
+  }
+  
+  // Forward to Serial MIDI
+  SERIAL_M.sendRealTime(midi::Stop);
+  triggerOutLED(); // Trigger output LED for outgoing serial MIDI activity
 }
 
 // Serial MIDI message handlers
 // These forward messages to USB Host MIDI and USB Device MIDI
 
 void serial_onNoteOn(byte channel, byte note, byte velocity) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: Note On - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Host MIDI
@@ -440,6 +564,9 @@ void serial_onNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void serial_onNoteOff(byte channel, byte note, byte velocity) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: Note Off - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Host MIDI
@@ -453,6 +580,9 @@ void serial_onNoteOff(byte channel, byte note, byte velocity) {
 }
 
 void serial_onControlChange(byte channel, byte controller, byte value) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: CC - Channel: %d, Controller: %d, Value: %d\n", channel, controller, value);
   
   // Forward to USB Host MIDI
@@ -466,6 +596,9 @@ void serial_onControlChange(byte channel, byte controller, byte value) {
 }
 
 void serial_onProgramChange(byte channel, byte program) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: Program Change - Channel: %d, Program: %d\n", channel, program);
   
   // Forward to USB Host MIDI
@@ -479,6 +612,9 @@ void serial_onProgramChange(byte channel, byte program) {
 }
 
 void serial_onAftertouch(byte channel, byte pressure) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: Channel Aftertouch - Channel: %d, Pressure: %d\n", channel, pressure);
   
   // Forward to USB Host MIDI
@@ -492,6 +628,9 @@ void serial_onAftertouch(byte channel, byte pressure) {
 }
 
 void serial_onPitchBend(byte channel, int bend) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: Pitch Bend - Channel: %d, Bend: %d\n", channel, bend);
   
   // Forward to USB Host MIDI
@@ -505,6 +644,9 @@ void serial_onPitchBend(byte channel, int bend) {
 }
 
 void serial_onSysEx(byte * array, unsigned size) {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.printf("Serial MIDI: SysEx - Size: %d\n", size);
   
   // Forward to USB Host MIDI
@@ -518,6 +660,9 @@ void serial_onSysEx(byte * array, unsigned size) {
 }
 
 void serial_onClock() {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.println("Serial MIDI: Clock");
   
   // Forward to USB Host MIDI
@@ -531,6 +676,9 @@ void serial_onClock() {
 }
 
 void serial_onStart() {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.println("Serial MIDI: Start");
   
   // Forward to USB Host MIDI
@@ -544,6 +692,9 @@ void serial_onStart() {
 }
 
 void serial_onContinue() {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.println("Serial MIDI: Continue");
   
   // Forward to USB Host MIDI
@@ -557,6 +708,9 @@ void serial_onContinue() {
 }
 
 void serial_onStop() {
+  // Trigger input LED for incoming serial MIDI activity
+  triggerInLED();
+  
   Serial.println("Serial MIDI: Stop");
   
   // Forward to USB Host MIDI
