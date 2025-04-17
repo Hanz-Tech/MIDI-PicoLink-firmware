@@ -4,7 +4,6 @@
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
 #endif
 #include "usb_host_wrapper.h"
-#define HOST_PIN_DP   16   // Pin used as D+ for host, D- = D+ + 1
 
 uint8_t midi_dev_addr = 0;
 
