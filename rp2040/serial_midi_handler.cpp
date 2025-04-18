@@ -60,6 +60,7 @@ void setupSerialMidi() {
     SERIAL_M.setHandleStart(localSerialOnStart);
     SERIAL_M.setHandleContinue(localSerialOnContinue);
     SERIAL_M.setHandleStop(localSerialOnStop);
+    SERIAL_M.turnThruOff();
 
     Serial.printf("Serial MIDI Module: Initialized using pins: RX=%d, TX=%d\n", serialRxPin, serialTxPin);
 }

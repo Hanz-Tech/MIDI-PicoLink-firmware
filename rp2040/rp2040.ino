@@ -39,6 +39,7 @@ USING_NAMESPACE_EZ_USB_MIDI_HOST
 EZ_USB_MIDI_HOST<MidiHostSettingsDefault> myMidiHost;
 EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost = myMidiHost; // This reference should be fine
 
+
 static bool core0_booting = true;
 static bool core1_booting = true;
 
@@ -139,6 +140,9 @@ void setup() {
 
   core0_booting = false;
   while(core1_booting);
+
+
+  USB_D.turnThruOff();
 }
 
 // Main loop for core 0
