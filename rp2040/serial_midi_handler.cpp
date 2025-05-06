@@ -4,6 +4,7 @@
 #include "EZ_USB_MIDI_HOST.h"   // For midiHost type and methods
 #include "led_utils.h" // For triggerSerialLED()
 #include "midi_instances.h"
+#include "midi_filters.h" // Include the MIDI filters
 
 // --- Configuration ---
 int serialRxPin = 1;  // GPIO pin for Serial1 RX
@@ -115,99 +116,127 @@ void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
     triggerSerialLED(); // Trigger LED for serial MIDI activity
     Serial.printf("Serial MIDI In: Note On - Ch: %d, Note: %d, Vel: %d\n", channel, note, velocity);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendNoteOn(note, velocity, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendNoteOn(note, velocity, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendNoteOn(note, velocity, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+        USB_D.sendNoteOn(note, velocity, channel);
+    }
 }
 
 void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
     triggerSerialLED();
     Serial.printf("Serial MIDI In: Note Off - Ch: %d, Note: %d, Vel: %d\n", channel, note, velocity);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendNoteOff(note, velocity, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendNoteOff(note, velocity, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendNoteOff(note, velocity, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+        USB_D.sendNoteOff(note, velocity, channel);
+    }
 }
 
 void localSerialOnControlChange(byte channel, byte controller, byte value) {
     triggerSerialLED();
     Serial.printf("Serial MIDI In: CC - Ch: %d, CC: %d, Val: %d\n", channel, controller, value);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendControlChange(controller, value, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendControlChange(controller, value, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendControlChange(controller, value, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
+        USB_D.sendControlChange(controller, value, channel);
+    }
 }
 
 void localSerialOnProgramChange(byte channel, byte program) {
     triggerSerialLED();
     Serial.printf("Serial MIDI In: Prgm Chg - Ch: %d, Pgm: %d\n", channel, program);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendProgramChange(program, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendProgramChange(program, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendProgramChange(program, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
+        USB_D.sendProgramChange(program, channel);
+    }
 }
 
 void localSerialOnAftertouch(byte channel, byte pressure) { // Channel Aftertouch
     triggerSerialLED();
     Serial.printf("Serial MIDI In: Ch Aftertouch - Ch: %d, Pressure: %d\n", channel, pressure);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        // Note: EZ Host library uses sendAfterTouch for Channel AT when only pressure & channel are given
-        intf->sendAfterTouch(pressure, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            // Note: EZ Host library uses sendAfterTouch for Channel AT when only pressure & channel are given
+            intf->sendAfterTouch(pressure, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendAfterTouch(pressure, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
+        USB_D.sendAfterTouch(pressure, channel);
+    }
 }
 
 void localSerialOnPitchBend(byte channel, int bend) {
     triggerSerialLED();
     Serial.printf("Serial MIDI In: Pitch Bend - Ch: %d, Bend: %d\n", channel, bend);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendPitchBend(bend, channel);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendPitchBend(bend, channel);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendPitchBend(bend, channel);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
+        USB_D.sendPitchBend(bend, channel);
+    }
 }
 
 void localSerialOnSysEx(byte * array, unsigned size) {
     triggerSerialLED();
     Serial.printf("Serial MIDI In: SysEx - Size: %d\n", size);
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendSysEx(size, array);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_SYSEX)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendSysEx(size, array);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendSysEx(size, array);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_SYSEX)) {
+        USB_D.sendSysEx(size, array);
+    }
 }
 
 void localSerialOnClock() {
@@ -215,54 +244,70 @@ void localSerialOnClock() {
     // Avoid printing every clock message to prevent flooding Serial monitor
     // Serial.println("Serial MIDI In: Clock");
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendRealTime(midi::Clock);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendRealTime(midi::Clock);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendRealTime(midi::Clock);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        USB_D.sendRealTime(midi::Clock);
+    }
 }
 
 void localSerialOnStart() {
     triggerSerialLED();
     Serial.println("Serial MIDI In: Start");
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendRealTime(midi::Start);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendRealTime(midi::Start);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendRealTime(midi::Start);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        USB_D.sendRealTime(midi::Start);
+    }
 }
 
 void localSerialOnContinue() {
     triggerSerialLED();
     Serial.println("Serial MIDI In: Continue");
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendRealTime(midi::Continue);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendRealTime(midi::Continue);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendRealTime(midi::Continue);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        USB_D.sendRealTime(midi::Continue);
+    }
 }
 
 void localSerialOnStop() {
     triggerSerialLED();
     Serial.println("Serial MIDI In: Stop");
 
-    // Forward to USB Host MIDI
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-        intf->sendRealTime(midi::Stop);
+    // Forward to USB Host MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
+        if (intf != nullptr) {
+            intf->sendRealTime(midi::Stop);
+        }
     }
 
-    // Forward to USB Device MIDI
-    USB_D.sendRealTime(midi::Stop);
+    // Forward to USB Device MIDI if not filtered
+    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
+        USB_D.sendRealTime(midi::Stop);
+    }
 }
