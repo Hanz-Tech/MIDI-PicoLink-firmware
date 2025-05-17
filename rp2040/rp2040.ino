@@ -10,6 +10,7 @@
 // Include the new Serial MIDI header
 #include "serial_midi_handler.h"
 #include "midi_filters.h"
+#include "eeprom_config.h"
 
 // USB Host configuration
 #define HOST_PIN_DP   12   // Pin used as D+ for host, D- = D+ + 1
@@ -138,7 +139,10 @@ void setup() {
 
   // Initialize MIDI filters
   setupMidiFilters();
-
+  
+  // Initialize EEPROM and load filter settings
+  setupEEPROM();
+  
   // Call the setup function for the Serial MIDI module
   setupSerialMidi();
 
@@ -160,6 +164,9 @@ void loop() {
 
   // Process Serial MIDI
   loopSerialMidi(); 
+  
+  // Process serial commands for EEPROM configuration
+  processSerialCommands();
 
   // Handle LED indicators
   handleLEDs();
@@ -193,7 +200,6 @@ void setup1() {
 
   // Initialize USB Host MIDI
   myMidiHost.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
-  disableMidiFilter(MIDI_INTERFACE_SERIAL, MIDI_MSG_NOTE_ON );
   core1_booting = false;
   while(core0_booting);
 }

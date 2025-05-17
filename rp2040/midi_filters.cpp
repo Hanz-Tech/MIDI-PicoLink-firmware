@@ -2,7 +2,8 @@
 
 // Global filter array: [interface][message type]
 // true = message is filtered (blocked), false = message passes through
-static bool midiFilters[MIDI_INTERFACE_COUNT][MIDI_MSG_COUNT] = {0};
+// Removed 'static' to make it accessible from eeprom_config.cpp
+bool midiFilters[MIDI_INTERFACE_COUNT][MIDI_MSG_COUNT] = {0};
 
 void setupMidiFilters() {
     // Initialize all filters to false (no filtering)

@@ -43,4 +43,7 @@ void disableAllFilters(MidiInterfaceType interface);
 // Helper functions to enable/disable a specific message type for all interfaces
 void filterMessageTypeForAll(MidiMsgType msgType, bool enabled);
 
+// Forward declaration of the global filter array
+extern bool midiFilters[MIDI_INTERFACE_COUNT][MIDI_MSG_COUNT];
+
 #endif // MIDI_FILTERS_H
