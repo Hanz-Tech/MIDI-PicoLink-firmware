@@ -43,4 +43,15 @@ void disableAllFilters(MidiInterfaceType interface);
 // Helper functions to enable/disable a specific message type for all interfaces
 void filterMessageTypeForAll(MidiMsgType msgType, bool enabled);
 
+// Functions to disable specific message types for all interfaces
+void disableNoteOnForAll();
+void disableNoteOffForAll();
+void disablePolyAftertouchForAll();
+void disableControlChangeForAll();
+void disableProgramChangeForAll();
+void disableChannelAftertouchForAll();
+void disablePitchBendForAll();
+void disableSysExForAll();
+void disableRealtimeForAll();
+
 #endif // MIDI_FILTERS_H

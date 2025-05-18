@@ -1,4 +1,5 @@
 #include "midi_filters.h"
+#include "serial_utils.h"
 
 // Global filter array: [interface][message type]
 // true = message is filtered (blocked), false = message passes through
@@ -12,7 +13,7 @@ void setupMidiFilters() {
         }
     }
     
-    Serial.println("MIDI Filters: Initialized (all messages passing through)");
+    dualPrintln("MIDI Filters: Initialized (all messages passing through)");
 }
 
 void setMidiFilter(MidiInterfaceType interface, MidiMsgType msgType, bool enabled) {
@@ -27,7 +28,7 @@ void setMidiFilter(MidiInterfaceType interface, MidiMsgType msgType, bool enable
             "SysEx", "Realtime"
         };
         
-        Serial.printf("MIDI Filter: %s messages on %s interface %s\n", 
+        dualPrintf("MIDI Filter: %s messages on %s interface %s\n", 
             msgTypeNames[msgType], 
             interfaceNames[interface], 
             enabled ? "BLOCKED" : "ENABLED");
@@ -56,7 +57,7 @@ void enableAllFilters(MidiInterfaceType interface) {
         }
         
         const char* interfaceNames[] = {"Serial", "USB Device", "USB Host"};
-        Serial.printf("MIDI Filter: ALL messages on %s interface BLOCKED\n", 
+        dualPrintf("MIDI Filter: ALL messages on %s interface BLOCKED\n", 
             interfaceNames[interface]);
     }
 }
@@ -68,7 +69,7 @@ void disableAllFilters(MidiInterfaceType interface) {
         }
         
         const char* interfaceNames[] = {"Serial", "USB Device", "USB Host"};
-        Serial.printf("MIDI Filter: ALL messages on %s interface ENABLED\n", 
+        dualPrintf("MIDI Filter: ALL messages on %s interface ENABLED\n", 
             interfaceNames[interface]);
     }
 }
@@ -85,8 +86,43 @@ void filterMessageTypeForAll(MidiMsgType msgType, bool enabled) {
             "SysEx", "Realtime"
         };
         
-        Serial.printf("MIDI Filter: %s messages on ALL interfaces %s\n", 
+        dualPrintf("MIDI Filter: %s messages on ALL interfaces %s\n", 
             msgTypeNames[msgType], 
             enabled ? "BLOCKED" : "ENABLED");
     }
+}
+
+// Functions to disable specific message types for all interfaces
+void disableNoteForAll() {
+    filterMessageTypeForAll(MIDI_MSG_NOTE_ON, true);
+    filterMessageTypeForAll(MIDI_MSG_NOTE_OFF, true);
+
+}
+
+void disablePolyAftertouchForAll() {
+    filterMessageTypeForAll(MIDI_MSG_POLY_AFTERTOUCH, true);
+}
+
+void disableControlChangeForAll() {
+    filterMessageTypeForAll(MIDI_MSG_CONTROL_CHANGE, true);
+}
+
+void disableProgramChangeForAll() {
+    filterMessageTypeForAll(MIDI_MSG_PROGRAM_CHANGE, true);
+}
+
+void disableChannelAftertouchForAll() {
+    filterMessageTypeForAll(MIDI_MSG_CHANNEL_AFTERTOUCH, true);
+}
+
+void disablePitchBendForAll() {
+    filterMessageTypeForAll(MIDI_MSG_PITCH_BEND, true);
+}
+
+void disableSysExForAll() {
+    filterMessageTypeForAll(MIDI_MSG_SYSEX, true);
+}
+
+void disableRealtimeForAll() {
+    filterMessageTypeForAll(MIDI_MSG_REALTIME, true);
 }
