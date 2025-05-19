@@ -46,6 +46,7 @@ EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost = myMidiHost; // This refere
 
 static bool core0_booting = true;
 static bool core1_booting = true;
+uint32_t timeout = 2000; // 2 seconds timeout
 
 // Forward declarations for USB Host MIDI message handlers (remain the same)
 void usbh_onNoteOffHandle(byte channel, byte note, byte velocity);
@@ -138,7 +139,6 @@ void setup() {
 
   // Add a timeout for USB device mounting (2 seconds max wait)
   uint32_t startTime = millis();
-  uint32_t timeout = 2000; // 2 seconds timeout
   
   // Wait for device to be mounted, but with a timeout
   while(!TinyUSBDevice.mounted()) {
@@ -194,7 +194,15 @@ void loop() {
 
 // Setup function for core 1 (USB Host) - Remains the same
 void setup1() {
-  while(!Serial);   // wait for native usb
+  if (!isConnectedToComputer) {
+    // We're in standalone mode, don't wait for Serial
+    dualPrintln("Core1 setup in standalone mode");
+  } else {
+    // Only wait briefly for Serial when connected to computer
+    uint32_t startTime = millis();
+    while(!Serial && (millis() - startTime < timeout)); // 2 second timeout
+  }
+  
   dualPrintln("Core1 setup to run TinyUSB host with pio-usb");
 
   // Check for CPU frequency, must be multiple of 120Mhz for bit-banging USB
@@ -687,7 +695,7 @@ void usbd_onClock() {
     sendSerialMidiRealTime(midi::Clock);
   }
   
-  triggerUsbLED();
+  // triggerUsbLED(); 
 }
 
 void usbd_onStart() {
