@@ -67,29 +67,40 @@ void onSongSelect(byte songnumber)
 }
 
 void registerMidiInCallbacks() {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf == nullptr) return;
+    // Register callbacks for all in-cables of the device
+    uint8_t ncables = midiHost.getNumInCables(midi_dev_addr);
+    dualPrintf("Registering callbacks for %d in-cables on device address %d\r\n", ncables, midi_dev_addr);
+    
+    for (uint8_t cable = 0; cable < ncables; cable++) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, cable);
+        if (intf == nullptr) {
+            dualPrintf("Failed to get interface for device %d, cable %d\r\n", midi_dev_addr, cable);
+            continue;
+        }
 
-    intf->setHandleNoteOff(onNoteOff);
-    intf->setHandleNoteOn(onNoteOn);
-    intf->setHandleAfterTouchPoly(onPolyphonicAftertouch);
-    intf->setHandleControlChange(onControlChange);
-    intf->setHandleProgramChange(onProgramChange);
-    intf->setHandleAfterTouchChannel(onAftertouch);
-    intf->setHandlePitchBend(onPitchBend);
-    intf->setHandleSystemExclusive(onSysEx);
-    intf->setHandleTimeCodeQuarterFrame(onSMPTEqf);
-    intf->setHandleSongPosition(onSongPosition);
-    intf->setHandleSongSelect(onSongSelect);
-    intf->setHandleTuneRequest(onTuneRequest);
-    intf->setHandleClock(onMidiClock);
-    intf->setHandleTick(skip);
-    intf->setHandleStart(onMidiStart);
-    intf->setHandleContinue(onMidiContinue);
-    intf->setHandleStop(onMidiStop);
-    intf->setHandleActiveSensing(onActiveSense);
-    intf->setHandleSystemReset(onSystemReset);
-    intf->setHandleError(onMidiError);
+        intf->setHandleNoteOff(onNoteOff);
+        intf->setHandleNoteOn(onNoteOn);
+        intf->setHandleAfterTouchPoly(onPolyphonicAftertouch);
+        intf->setHandleControlChange(onControlChange);
+        intf->setHandleProgramChange(onProgramChange);
+        intf->setHandleAfterTouchChannel(onAftertouch);
+        intf->setHandlePitchBend(onPitchBend);
+        intf->setHandleSystemExclusive(onSysEx);
+        intf->setHandleTimeCodeQuarterFrame(onSMPTEqf);
+        intf->setHandleSongPosition(onSongPosition);
+        intf->setHandleSongSelect(onSongSelect);
+        intf->setHandleTuneRequest(onTuneRequest);
+        intf->setHandleClock(onMidiClock);
+        intf->setHandleTick(skip);
+        intf->setHandleStart(onMidiStart);
+        intf->setHandleContinue(onMidiContinue);
+        intf->setHandleStop(onMidiStop);
+        intf->setHandleActiveSensing(onActiveSense);
+        intf->setHandleSystemReset(onSystemReset);
+        intf->setHandleError(onMidiError);
+        
+        dualPrintf("Successfully registered callbacks for device %d, cable %d\r\n", midi_dev_addr, cable);
+    }
 
     auto dev = midiHost.getDevFromDevAddr(midi_dev_addr);
     if (dev == nullptr) return;
@@ -102,8 +113,44 @@ void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables) {
     registerMidiInCallbacks();
 }
 
+void unregisterMidiInCallbacks(uint8_t midiDevAddr) {
+    uint8_t ncables = midiHost.getNumInCables(midiDevAddr);
+    for (uint8_t cable = 0; cable < ncables; cable++) {
+        auto intf = midiHost.getInterfaceFromDeviceAndCable(midiDevAddr, cable);
+        if (intf == nullptr)
+            continue;
+        
+        intf->disconnectCallbackFromType(NoteOn);
+        intf->disconnectCallbackFromType(NoteOff);
+        intf->disconnectCallbackFromType(AfterTouchPoly);
+        intf->disconnectCallbackFromType(ControlChange);
+        intf->disconnectCallbackFromType(ProgramChange);
+        intf->disconnectCallbackFromType(AfterTouchChannel);
+        intf->disconnectCallbackFromType(PitchBend);
+        intf->disconnectCallbackFromType(SystemExclusive);
+        intf->disconnectCallbackFromType(TimeCodeQuarterFrame);
+        intf->disconnectCallbackFromType(SongPosition);
+        intf->disconnectCallbackFromType(SongSelect);
+        intf->disconnectCallbackFromType(TuneRequest);
+        intf->disconnectCallbackFromType(Clock);
+        intf->disconnectCallbackFromType(Tick);
+        intf->disconnectCallbackFromType(Start);
+        intf->disconnectCallbackFromType(Continue);
+        intf->disconnectCallbackFromType(Stop);
+        intf->disconnectCallbackFromType(ActiveSensing);
+        intf->disconnectCallbackFromType(SystemReset);
+        intf->setHandleError(nullptr);
+    }
+    
+    auto dev = midiHost.getDevFromDevAddr(midiDevAddr);
+    if (dev == nullptr)
+        return;
+    dev->setOnMidiInWriteFail(nullptr);
+}
+
 void onMIDIdisconnect(uint8_t devAddr)
 {
     dualPrintf("MIDI device at address %u unplugged\r\n", devAddr);
+    unregisterMidiInCallbacks(devAddr);
     midi_dev_addr = 0;
 }
