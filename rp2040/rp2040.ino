@@ -44,8 +44,7 @@ EZ_USB_MIDI_HOST<MidiHostSettingsDefault> myMidiHost;
 EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost = myMidiHost; // This reference should be fine
 
 
-static bool core0_booting = true;
-static bool core1_booting = true;
+volatile bool core1_booting = true;
 uint32_t timeout = 2000; // 2 seconds timeout
 
 // Forward declarations for USB Host MIDI message handlers (remain the same)
@@ -93,8 +92,9 @@ MidiStartFunctionPtr onMidiStart = usbh_onMidiStartHandle;
 MidiContinueFunctionPtr onMidiContinue = usbh_onMidiContinueHandle;
 MidiStopFunctionPtr onMidiStop = usbh_onMidiStopHandle;
 
-// Setup function for core 0
 void setup() {
+  dualPrintln("DEBUG: Entered setup()"); // Core 0
+  Serial2.println("DEBUG: Core0 start Serial2"); // Core 0
   // Configure LED pins
   pinMode(LED_IN_PIN, OUTPUT);
   pinMode(LED_OUT_PIN, OUTPUT);
@@ -133,9 +133,6 @@ void setup() {
   Serial2.setRX(25);
   Serial2.setTX(24);
   Serial2.begin(115200);
-  while (!Serial2) {
-    delay(100);   // wait for native usb
-  }
 
   // Add a timeout for USB device mounting (2 seconds max wait)
   uint32_t startTime = millis();
@@ -166,11 +163,11 @@ void setup() {
   // Call the setup function for the Serial MIDI module
   setupSerialMidi();
 
-  core0_booting = false;
-  while(core1_booting);
-
-
+  rp2040.fifo.push(0);
+  while(rp2040.fifo.pop() != 1){};
   USB_D.turnThruOff();
+  dualPrintln("Core0 setup complete");
+  dualPrintln("");
 }
 
 
@@ -192,8 +189,8 @@ void loop() {
   handleLEDs();
 }
 
-// Setup function for core 1 (USB Host) - Remains the same
 void setup1() {
+  while(rp2040.fifo.pop() != 0){};
   if (!isConnectedToComputer) {
     // We're in standalone mode, don't wait for Serial
     dualPrintln("Core1 setup in standalone mode");
@@ -203,7 +200,7 @@ void setup1() {
     while(!Serial && (millis() - startTime < timeout)); // 2 second timeout
   }
   
-  dualPrintln("Core1 setup to run TinyUSB host with pio-usb");
+  
 
   // Check for CPU frequency, must be multiple of 120Mhz for bit-banging USB
   uint32_t cpu_hz = clock_get_hz(clk_sys);
@@ -228,8 +225,9 @@ void setup1() {
 
   // Initialize USB Host MIDI
   myMidiHost.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
-  core1_booting = false;
-  while(core0_booting);
+  rp2040.fifo.push(1);
+  dualPrintln("Core1 setup to run TinyUSB host with pio-usb");
+  dualPrintln("");
 }
 
 // Main loop for core 1 - Remains the same

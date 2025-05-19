@@ -68,6 +68,7 @@ void setupSerialMidi() {
     SERIAL_M.turnThruOff();
 
     dualPrintf("Serial MIDI Module: Initialized using pins: RX=%d, TX=%d\n", serialRxPin, serialTxPin);
+    dualPrintln("");
 }
 
 void loopSerialMidi() {
