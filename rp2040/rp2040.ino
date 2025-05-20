@@ -39,9 +39,10 @@ Adafruit_USBH_Host USBHost;
 USING_NAMESPACE_MIDI
 USING_NAMESPACE_EZ_USB_MIDI_HOST
 
-// Make sure myMidiHost/midiHost are accessible externally (not static) for serial_midi.cpp
-EZ_USB_MIDI_HOST<MidiHostSettingsDefault> myMidiHost;
-EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost = myMidiHost; // This reference should be fine
+
+// Instantiate MIDI host with custom settings
+EZ_USB_MIDI_HOST<MyCustomSettings> myMidiHost;
+EZ_USB_MIDI_HOST<MyCustomSettings>& midiHost = myMidiHost; // This reference should be fine
 
 
 volatile bool core1_booting = true;
@@ -61,6 +62,20 @@ void usbh_onMidiStartHandle();
 void usbh_onMidiContinueHandle();
 void usbh_onMidiStopHandle();
 
+// C-style wrappers for usb_host_wrapper.cpp linkage
+void onNoteOff(Channel channel, byte note, byte velocity) { usbh_onNoteOffHandle(channel, note, velocity); }
+void onNoteOn(Channel channel, byte note, byte velocity) { usbh_onNoteOnHandle(channel, note, velocity); }
+void onPolyphonicAftertouch(Channel channel, byte note, byte pressure) { usbh_onPolyphonicAftertouchHandle(channel, note, pressure); }
+void onControlChange(Channel channel, byte control, byte value) { usbh_onControlChangeHandle(channel, control, value); }
+void onProgramChange(Channel channel, byte program) { usbh_onProgramChangeHandle(channel, program); }
+void onAftertouch(Channel channel, byte pressure) { usbh_onAftertouchHandle(channel, pressure); }
+void onPitchBend(Channel channel, int bend) { usbh_onPitchBendHandle(channel, bend); }
+void onSysEx(byte * array, unsigned size) { usbh_onSysExHandle(array, size); }
+void onMidiClock() { usbh_onMidiClockHandle(); }
+void onMidiStart() { usbh_onMidiStartHandle(); }
+void onMidiContinue() { usbh_onMidiContinueHandle(); }
+void onMidiStop() { usbh_onMidiStopHandle(); }
+
 // USB Device MIDI message handlers (remain the same)
 void usbd_onNoteOn(byte channel, byte note, byte velocity);
 void usbd_onNoteOff(byte channel, byte note, byte velocity);
@@ -77,20 +92,6 @@ void usbd_onStop();
 // Serial MIDI message handlers - REMOVED (defined in serial_midi.cpp)
 // void serial_onNoteOn(byte channel, byte note, byte velocity);
 // ... (remove all serial_on... declarations)
-
-// Function pointers for USB Host MIDI callbacks (remain the same)
-NoteOffFunctionPtr onNoteOff = usbh_onNoteOffHandle;
-NoteOnFunctionPtr onNoteOn = usbh_onNoteOnHandle;
-PolyphonicAftertouchFunctionPtr onPolyphonicAftertouch = usbh_onPolyphonicAftertouchHandle;
-ControlChangeFunctionPtr onControlChange = usbh_onControlChangeHandle;
-ProgramChangeFunctionPtr onProgramChange = usbh_onProgramChangeHandle;
-AftertouchFunctionPtr onAftertouch = usbh_onAftertouchHandle;
-PitchBendFunctionPtr onPitchBend = usbh_onPitchBendHandle;
-SysExFunctionPtr onSysEx = usbh_onSysExHandle;
-MidiClockFunctionPtr onMidiClock = usbh_onMidiClockHandle;
-MidiStartFunctionPtr onMidiStart = usbh_onMidiStartHandle;
-MidiContinueFunctionPtr onMidiContinue = usbh_onMidiContinueHandle;
-MidiStopFunctionPtr onMidiStop = usbh_onMidiStopHandle;
 
 void setup() {
   dualPrintln("DEBUG: Entered setup()"); // Core 0
@@ -174,8 +175,7 @@ void setup() {
 // Main loop for core 0
 void loop() {
   // Process USB Host MIDI
-  myMidiHost.readAll();
-  myMidiHost.writeFlushAll();
+  usb_host_wrapper_task();
 
   // Process USB Device MIDI only if connected to a computer
   if (isConnectedToComputer) {
@@ -228,11 +228,6 @@ void setup1() {
   rp2040.fifo.push(1);
   dualPrintln("Core1 setup to run TinyUSB host with pio-usb");
   dualPrintln("");
-}
-
-// Main loop for core 1 - Remains the same
-void loop1() {
-  USBHost.task();
 }
 
 // Shared variables for LED state - Remains the same

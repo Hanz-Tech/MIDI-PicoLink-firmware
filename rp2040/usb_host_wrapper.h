@@ -39,41 +39,16 @@ USING_NAMESPACE_EZ_USB_MIDI_HOST
 #define LANGUAGE_ID 0x0409  // English
 
 
-USING_NAMESPACE_MIDI
-USING_NAMESPACE_EZ_USB_MIDI_HOST
-
-#define LANGUAGE_ID 0x0409  // English
-
-extern EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost;
+struct MyCustomSettings : public MidiHostSettingsDefault {
+    static const unsigned MidiRxBufsize = 512;
+};
+extern EZ_USB_MIDI_HOST<MyCustomSettings>& midiHost;
+extern Adafruit_USBH_Host USBHost;
 
 void initializeMidiHost(EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHostInstance);
-void registerMidiInCallbacks();
+void registerMidiInCallbacks(uint8_t midiDevAddr);
+void unregisterMidiInCallbacks(uint8_t midiDevAddr);
 void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables);
 void onMIDIdisconnect(uint8_t devAddr);
-typedef void (*NoteOffFunctionPtr)(byte channel, byte note, byte velocity);
-typedef void (*NoteOnFunctionPtr)(byte channel, byte note, byte velocity);
-typedef void (*PolyphonicAftertouchFunctionPtr)(byte channel, byte note, byte pressure);
-typedef void (*ControlChangeFunctionPtr)(byte channel, byte control, byte value);
-typedef void (*ProgramChangeFunctionPtr)(byte channel, byte program);
-typedef void (*AftertouchFunctionPtr)(byte channel, byte pressure);
-typedef void (*PitchBendFunctionPtr)(byte channel, int bend);
-typedef void (*SysExFunctionPtr)(byte * array, unsigned size);
-typedef void (*MidiClockFunctionPtr)(void);
-typedef void (*MidiStartFunctionPtr)(void);
-typedef void (*MidiContinueFunctionPtr)(void);
-typedef void (*MidiStopFunctionPtr)(void);
-
-extern NoteOffFunctionPtr onNoteOff;
-extern NoteOnFunctionPtr onNoteOn;
-extern PolyphonicAftertouchFunctionPtr onPolyphonicAftertouch;
-extern ControlChangeFunctionPtr onControlChange;
-extern ProgramChangeFunctionPtr onProgramChange;
-extern AftertouchFunctionPtr onAftertouch;
-extern PitchBendFunctionPtr onPitchBend;
-extern SysExFunctionPtr onSysEx;
-extern MidiClockFunctionPtr onMidiClock;
-extern MidiStartFunctionPtr onMidiStart;
-extern MidiContinueFunctionPtr onMidiContinue;
-extern MidiStopFunctionPtr onMidiStop;
-
+void usb_host_wrapper_task();
 #endif

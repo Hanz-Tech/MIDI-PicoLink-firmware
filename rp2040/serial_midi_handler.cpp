@@ -21,7 +21,7 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, SERIAL_M);
 // --- External References ---
 // These objects are defined in the main sketch or other included files
 // and are needed here to forward MIDI messages *from* Serial MIDI *to* USB Host and Device.
-extern EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHost;
+extern EZ_USB_MIDI_HOST<MyCustomSettings>& midiHost;
 extern uint8_t midi_dev_addr; // Set by USB Host connection callback
 // USB_D is now created by the macro in midi_instances.h
 
