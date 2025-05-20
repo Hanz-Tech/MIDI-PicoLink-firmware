@@ -160,6 +160,8 @@ void setup() {
 
   // Initialize MIDI filters
   setupMidiFilters();
+  enableAllChannels();
+  
 
   // Call the setup function for the Serial MIDI module
   setupSerialMidi();
@@ -241,6 +243,8 @@ void setup1() {
 // MODIFIED to use sendSerialMidi... functions
 
 void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
     return; // Don't process the message if it's filtered
@@ -262,6 +266,8 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
 }
 
 void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
     return; // Don't process the message if it's filtered
@@ -283,6 +289,8 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
 }
 
 void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_POLY_AFTERTOUCH)) {
     return; // Don't process the message if it's filtered
@@ -304,6 +312,8 @@ void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
 }
 
 void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
     return; // Don't process the message if it's filtered
@@ -325,6 +335,8 @@ void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
 }
 
 void usbh_onProgramChangeHandle(byte channel, byte program) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
     return; // Don't process the message if it's filtered
@@ -346,6 +358,8 @@ void usbh_onProgramChangeHandle(byte channel, byte program) {
 }
 
 void usbh_onAftertouchHandle(byte channel, byte value) { // Channel Aftertouch
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
     return; // Don't process the message if it's filtered
@@ -367,6 +381,8 @@ void usbh_onAftertouchHandle(byte channel, byte value) { // Channel Aftertouch
 }
 
 void usbh_onPitchBendHandle(byte channel, int value) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
     return; // Don't process the message if it's filtered
@@ -498,6 +514,8 @@ void usbh_onMidiStopHandle() {
 // MODIFIED to use sendSerialMidi... functions
 
 void usbd_onNoteOn(byte channel, byte note, byte velocity) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Device
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
     return; // Don't process the message if it's filtered
@@ -522,6 +540,8 @@ void usbd_onNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void usbd_onNoteOff(byte channel, byte note, byte velocity) {
+  // Channel filter
+  if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Device
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
     return; // Don't process the message if it's filtered
@@ -762,7 +782,3 @@ void usbd_onStop() {
   
   triggerUsbLED();
 }
-
-// Serial MIDI message handlers - REMOVED (defined in serial_midi.cpp)
-// void serial_onNoteOn(...) { ... }
-// ... (remove all serial_on... definitions)

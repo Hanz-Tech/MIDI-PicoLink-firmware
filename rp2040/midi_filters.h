@@ -54,4 +54,16 @@ void disablePitchBendForAll();
 void disableSysExForAll();
 void disableRealtimeForAll();
 
+
+// --- Global MIDI Channel Filter ---
+
+// Returns true if the given MIDI channel (1-16) is enabled
+bool isChannelEnabled(byte channel);
+// Enable/disable a specific channel (1-16)
+void setChannelEnabled(byte channel, bool enabled);
+// Enable all channels
+void enableAllChannels();
+// Disable all channels
+void disableAllChannels();
+
 #endif // MIDI_FILTERS_H

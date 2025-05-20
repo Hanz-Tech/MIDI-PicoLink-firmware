@@ -118,6 +118,8 @@ void sendSerialMidiRealTime(midi::MidiType type) {
 // These handle messages *received from* Serial MIDI and forward them
 
 void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
         return; // Don't process the message if it's filtered
@@ -141,6 +143,8 @@ void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
         return; // Don't process the message if it's filtered
@@ -164,6 +168,8 @@ void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
 }
 
 void localSerialOnControlChange(byte channel, byte controller, byte value) {
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
         return; // Don't process the message if it's filtered
@@ -187,6 +193,8 @@ void localSerialOnControlChange(byte channel, byte controller, byte value) {
 }
 
 void localSerialOnProgramChange(byte channel, byte program) {
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
         return; // Don't process the message if it's filtered
@@ -210,6 +218,8 @@ void localSerialOnProgramChange(byte channel, byte program) {
 }
 
 void localSerialOnAftertouch(byte channel, byte pressure) { // Channel Aftertouch
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
         return; // Don't process the message if it's filtered
@@ -234,6 +244,8 @@ void localSerialOnAftertouch(byte channel, byte pressure) { // Channel Aftertouc
 }
 
 void localSerialOnPitchBend(byte channel, int bend) {
+    // Channel filter
+    if (!isChannelEnabled(channel)) return;
     // First check if this message type is filtered for Serial MIDI
     if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
         return; // Don't process the message if it's filtered

@@ -126,3 +126,32 @@ void disableSysExForAll() {
 void disableRealtimeForAll() {
     filterMessageTypeForAll(MIDI_MSG_REALTIME, true);
 }
+
+// --- Global MIDI Channel Filter Implementation ---
+static bool enabledChannels[16] = {
+    true, true, true, true, true, true, true, true,
+    true, true, true, true, true, true, true, true
+};
+
+bool isChannelEnabled(byte channel) {
+    // MIDI channels are 1-16
+    if (channel < 1 || channel > 16) return false;
+    return enabledChannels[channel - 1];
+}
+
+void setChannelEnabled(byte channel, bool enabled) {
+    if (channel >= 1 && channel <= 16) {
+        enabledChannels[channel - 1] = enabled;
+        dualPrintf("MIDI Channel Filter: Channel %d %s\n", channel, enabled ? "ENABLED" : "DISABLED");
+    }
+}
+
+void enableAllChannels() {
+    for (int i = 0; i < 16; ++i) enabledChannels[i] = true;
+    dualPrintln("MIDI Channel Filter: ALL channels ENABLED");
+}
+
+void disableAllChannels() {
+    for (int i = 0; i < 16; ++i) enabledChannels[i] = false;
+    dualPrintln("MIDI Channel Filter: ALL channels DISABLED");
+}
