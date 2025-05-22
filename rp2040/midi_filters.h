@@ -5,8 +5,7 @@
 
 // Enum for different MIDI message types that can be filtered
 typedef enum {
-    MIDI_MSG_NOTE_ON = 0,
-    MIDI_MSG_NOTE_OFF,
+    MIDI_MSG_NOTE = 0,              // Controls both Note On and Note Off
     MIDI_MSG_POLY_AFTERTOUCH,
     MIDI_MSG_CONTROL_CHANGE,
     MIDI_MSG_PROGRAM_CHANGE,
@@ -14,7 +13,7 @@ typedef enum {
     MIDI_MSG_PITCH_BEND,
     MIDI_MSG_SYSEX,
     MIDI_MSG_REALTIME,
-    MIDI_MSG_COUNT // Used to determine the size of the filter array
+    MIDI_MSG_COUNT // Used to determine the size of the filter array (now 8)
 } MidiMsgType;
 
 // Enum for different MIDI interfaces
@@ -43,9 +42,7 @@ void disableAllFilters(MidiInterfaceType interface);
 // Helper functions to enable/disable a specific message type for all interfaces
 void filterMessageTypeForAll(MidiMsgType msgType, bool enabled);
 
-// Functions to disable specific message types for all interfaces
-void disableNoteOnForAll();
-void disableNoteOffForAll();
+void disableNoteForAll();
 void disablePolyAftertouchForAll();
 void disableControlChangeForAll();
 void disableProgramChangeForAll();
@@ -65,5 +62,13 @@ void setChannelEnabled(byte channel, bool enabled);
 void enableAllChannels();
 // Disable all channels
 void disableAllChannels();
+
+// --- Config Storage Helpers ---
+
+// Get/set filter state directly (used by config.cpp)
+bool getMidiFilterState(int interface, int msgType);
+void setMidiFilterState(int interface, int msgType, bool state);
+bool getChannelEnabledState(int channel); // 0-15
+void setChannelEnabledState(int channel, bool state); // 0-15
 
 #endif // MIDI_FILTERS_H

@@ -23,14 +23,14 @@ void setMidiFilter(MidiInterfaceType interface, MidiMsgType msgType, bool enable
         // Log the filter change
         const char* interfaceNames[] = {"Serial", "USB Device", "USB Host"};
         const char* msgTypeNames[] = {
-            "Note On", "Note Off", "Poly Aftertouch", "Control Change", 
-            "Program Change", "Channel Aftertouch", "Pitch Bend", 
+            "Note (On/Off)", "Poly Aftertouch", "Control Change",
+            "Program Change", "Channel Aftertouch", "Pitch Bend",
             "SysEx", "Realtime"
         };
-        
-        dualPrintf("MIDI Filter: %s messages on %s interface %s\n", 
-            msgTypeNames[msgType], 
-            interfaceNames[interface], 
+
+        dualPrintf("MIDI Filter: %s messages on %s interface %s\n",
+            msgTypeNames[msgType],
+            interfaceNames[interface],
             enabled ? "BLOCKED" : "ENABLED");
     }
 }
@@ -81,22 +81,20 @@ void filterMessageTypeForAll(MidiMsgType msgType, bool enabled) {
         }
         
         const char* msgTypeNames[] = {
-            "Note On", "Note Off", "Poly Aftertouch", "Control Change", 
-            "Program Change", "Channel Aftertouch", "Pitch Bend", 
+            "Note (On/Off)", "Poly Aftertouch", "Control Change",
+            "Program Change", "Channel Aftertouch", "Pitch Bend",
             "SysEx", "Realtime"
         };
-        
-        dualPrintf("MIDI Filter: %s messages on ALL interfaces %s\n", 
-            msgTypeNames[msgType], 
+
+        dualPrintf("MIDI Filter: %s messages on ALL interfaces %s\n",
+            msgTypeNames[msgType],
             enabled ? "BLOCKED" : "ENABLED");
     }
 }
 
 // Functions to disable specific message types for all interfaces
 void disableNoteForAll() {
-    filterMessageTypeForAll(MIDI_MSG_NOTE_ON, true);
-    filterMessageTypeForAll(MIDI_MSG_NOTE_OFF, true);
-
+    filterMessageTypeForAll(MIDI_MSG_NOTE, true);
 }
 
 void disablePolyAftertouchForAll() {
@@ -154,4 +152,34 @@ void enableAllChannels() {
 void disableAllChannels() {
     for (int i = 0; i < 16; ++i) enabledChannels[i] = false;
     dualPrintln("MIDI Channel Filter: ALL channels DISABLED");
+}
+
+// --- Config Storage Helpers Implementation ---
+
+bool getMidiFilterState(int interface, int msgType) {
+    if (interface >= 0 && interface < MIDI_INTERFACE_COUNT && 
+        msgType >= 0 && msgType < MIDI_MSG_COUNT) {
+        return midiFilters[interface][msgType];
+    }
+    return false;
+}
+
+void setMidiFilterState(int interface, int msgType, bool state) {
+    if (interface >= 0 && interface < MIDI_INTERFACE_COUNT && 
+        msgType >= 0 && msgType < MIDI_MSG_COUNT) {
+        midiFilters[interface][msgType] = state;
+    }
+}
+
+bool getChannelEnabledState(int channel) {
+    if (channel >= 0 && channel < 16) {
+        return enabledChannels[channel];
+    }
+    return false;
+}
+
+void setChannelEnabledState(int channel, bool state) {
+    if (channel >= 0 && channel < 16) {
+        enabledChannels[channel] = state;
+    }
 }

@@ -1,0 +1,33 @@
+{
+  "name": "rp2040-web-configurator",
+  "version": "1.0.0",
+  "description": "Web app to configure the RP2040 MIDI filter and channel settings using the Web Serial API",
+  "main": "dist/app.js",
+  "dependencies": {
+    "ajv": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/ajv": "^1.0.0",
+    "@types/w3c-web-serial": "^1.0.6",
+    "concurrently": "^8.2.2",
+    "http-server": "^14.1.1",
+    "nodemon": "^3.0.2",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "start": "http-server -c-1 -p 8080",
+    "watch": "nodemon --watch src --ext ts --exec npm run build:dev",
+    "dev": "concurrently \"npm:watch\" \"npm:start\""
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "MIT"
+}

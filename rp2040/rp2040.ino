@@ -11,6 +11,8 @@
 #include "serial_midi_handler.h"
 #include "midi_filters.h"
 #include "serial_utils.h"
+#include "web_serial_config.h"
+#include "config.h"
 
 // USB Host configuration
 #define HOST_PIN_DP   12   // Pin used as D+ for host, D- = D+ + 1
@@ -161,6 +163,8 @@ void setup() {
   // Initialize MIDI filters
   setupMidiFilters();
   enableAllChannels();
+  // Load persisted filter/channel config from EEPROM
+  loadConfigFromEEPROM();
   
 
   // Call the setup function for the Serial MIDI module
@@ -186,6 +190,9 @@ void loop() {
 
   // Process Serial MIDI
   loopSerialMidi(); 
+
+  // Handle Web Serial config commands (JSON over USB CDC)
+  processWebSerialConfig();
 
   // Handle LED indicators
   handleLEDs();
@@ -246,19 +253,19 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   // Channel filter
   if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     return; // Don't process the message if it's filtered
   }
   
   dualPrintf("USB Host: Note Off - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Device MIDI if not filtered and connected to computer
-  if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
     USB_D.sendNoteOff(note, velocity, channel);
   }
   
   // Forward to Serial MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
     sendSerialMidiNoteOff(channel, note, velocity);
   }
   
@@ -269,19 +276,19 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
   // Channel filter
   if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Host
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     return; // Don't process the message if it's filtered
   }
   
   dualPrintf("USB Host: Note On - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Device MIDI if not filtered and connected to computer
-  if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
     USB_D.sendNoteOn(note, velocity, channel);
   }
   
   // Forward to Serial MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
     sendSerialMidiNoteOn(channel, note, velocity);
   }
   
@@ -517,14 +524,14 @@ void usbd_onNoteOn(byte channel, byte note, byte velocity) {
   // Channel filter
   if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Device
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
     return; // Don't process the message if it's filtered
   }
   
   dualPrintf("USB Device: Note On - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Host MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
     if (intf != nullptr) {
       intf->sendNoteOn(note, velocity, channel);
@@ -532,7 +539,7 @@ void usbd_onNoteOn(byte channel, byte note, byte velocity) {
   }
   
   // Forward to Serial MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_ON)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
     sendSerialMidiNoteOn(channel, note, velocity);
   }
   
@@ -543,14 +550,14 @@ void usbd_onNoteOff(byte channel, byte note, byte velocity) {
   // Channel filter
   if (!isChannelEnabled(channel)) return;
   // First check if this message type is filtered for USB Device
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
     return; // Don't process the message if it's filtered
   }
   
   dualPrintf("USB Device: Note Off - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Host MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
     if (intf != nullptr) {
       intf->sendNoteOff(note, velocity, channel);
@@ -558,7 +565,7 @@ void usbd_onNoteOff(byte channel, byte note, byte velocity) {
   }
   
   // Forward to Serial MIDI if not filtered
-  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE_OFF)) {
+  if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
     sendSerialMidiNoteOff(channel, note, velocity);
   }
   
