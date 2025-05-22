@@ -96,6 +96,9 @@ void usbd_onStop();
 // ... (remove all serial_on... declarations)
 
 void setup() {
+  // Set custom USB serial device name
+
+
   dualPrintln("DEBUG: Entered setup()"); // Core 0
   Serial2.println("DEBUG: Core0 start Serial2"); // Core 0
   // Configure LED pins
@@ -110,6 +113,11 @@ void setup() {
   // Serial1.setTX(serialTxPin);
 
   // Initialize USB MIDI device
+  char serialstr[32] = "usbc-midi-0001";
+  USBDevice.setSerialDescriptor(serialstr);
+  USBDevice.setManufacturerDescriptor("XYZ MIDI Mfg");
+  USBDevice.setProductDescriptor("XYZDevice ");
+
   usb_midi.begin();
 
   // Initialize USB MIDI device handlers
@@ -175,6 +183,7 @@ void setup() {
   USB_D.turnThruOff();
   dualPrintln("Core0 setup complete");
   dualPrintln("");
+  blinkBothLEDs(4, 100);
 }
 
 

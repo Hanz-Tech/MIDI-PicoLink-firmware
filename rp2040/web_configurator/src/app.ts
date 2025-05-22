@@ -29,7 +29,8 @@ function buildConfigJson() {
   for (let iface = 0; iface < 3; iface++) {
     const arr: boolean[] = [];
     for (let msg = 0; msg < 8; msg++) {
-      arr.push((document.getElementById(`f-${iface}-${msg}`) as HTMLInputElement).checked);
+      // REVERSED LOGIC: checked = allowed = true, so store !checked for blocked
+      arr.push(!(document.getElementById(`f-${iface}-${msg}`) as HTMLInputElement).checked);
     }
     filters.push(arr);
   }
@@ -45,9 +46,9 @@ function buildConfigJson() {
 }
 
 // Apply config JSON to UI
-function applyConfigToUI(config: any) {
+function applyConfigToUI(config: any, skipValidation = false) {
   const statusDiv = document.getElementById("status") as HTMLDivElement;
-  if (!validateConfig(config)) {
+  if (!skipValidation && !validateConfig(config)) {
     logError("Invalid config: " + JSON.stringify(validateConfig.errors));
     statusDiv.textContent = "Invalid config: " + JSON.stringify(validateConfig.errors);
     statusDiv.className = "status error";
@@ -58,7 +59,8 @@ function applyConfigToUI(config: any) {
   // Set filters
   for (let iface = 0; iface < 3; iface++) {
     for (let msg = 0; msg < 8; msg++) {
-      (document.getElementById(`f-${iface}-${msg}`) as HTMLInputElement).checked = !!cfg.filters[iface][msg];
+      // REVERSED LOGIC: checked = allowed = true, so checked = !blocked
+      (document.getElementById(`f-${iface}-${msg}`) as HTMLInputElement).checked = !cfg.filters[iface][msg];
     }
   }
   // Set channels
@@ -119,6 +121,7 @@ function handleFileUpload(evt: Event) {
 // Connect logic
 async function connectSerial() {
   const statusDiv = document.getElementById("status") as HTMLDivElement;
+  const versionDiv = document.getElementById("version") as HTMLDivElement;
   const sendBtn = document.getElementById("sendBtn") as HTMLButtonElement;
   statusDiv.textContent = "";
   try {
@@ -128,6 +131,28 @@ async function connectSerial() {
       statusDiv.textContent = "Serial port connected.";
       statusDiv.className = "status";
       sendBtn.disabled = false;
+
+      // Request config and version
+      const readallCmd = JSON.stringify({ command: "READALL" }) + "\n";
+      await serialHandler.write(readallCmd);
+      logSent(readallCmd.trim());
+      // Read response (expecting config JSON with version)
+      for (let i = 0; i < 5; i++) {
+        const resp = await serialHandler.readLine();
+        if (resp) logRecv(resp);
+        try {
+          const config = JSON.parse(resp);
+          if (config.version) {
+            versionDiv.textContent = "Firmware Version: " + config.version;
+          } else {
+            versionDiv.textContent = "";
+          }
+          applyConfigToUI(config, true);
+          break;
+        } catch (e) {
+          // Not a JSON config, skip
+        }
+      }
     } else {
       statusDiv.textContent = "Already connected.";
       statusDiv.className = "status";

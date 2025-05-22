@@ -46,3 +46,15 @@ void triggerUsbLED() {
   outLedStartMs = millis();
   outLedActive = true;
 }
+
+// Blink both LEDs N times with ms delay (synchronous/blocking)
+void blinkBothLEDs(int times, int ms) {
+  for (int i = 0; i < times; i++) {
+    digitalWrite(LED_IN_PIN, HIGH);
+    digitalWrite(LED_OUT_PIN, HIGH);
+    delay(ms);
+    digitalWrite(LED_IN_PIN, LOW);
+    digitalWrite(LED_OUT_PIN, LOW);
+    delay(ms);
+  }
+}

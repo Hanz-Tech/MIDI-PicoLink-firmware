@@ -1,6 +1,7 @@
 #include "web_serial_config.h"
 #include "config.h"
 #include "led_utils.h"
+#include "version.h"
 #include <ArduinoJson.h>
 #include <Arduino.h>
 
@@ -10,10 +11,10 @@ void processWebSerialConfig() {
         line.trim();
         if (line.length() == 0) continue; // Skip empty lines
 
-        Serial.print("[DEBUG] Received line: ");
-        Serial.println(line);
+        // Serial.print("[DEBUG] Received line: ");
+        // Serial.println(line);
 
-        StaticJsonDocument<2048> doc;
+        JsonDocument doc;
         DeserializationError error = deserializeJson(doc, line);
         if (error) {
             Serial.print("{\"status\":\"deserializeJson() failed\",\"error\":\"");
@@ -22,17 +23,18 @@ void processWebSerialConfig() {
             continue;
         }
         // Print parsed keys for debugging
-        Serial.print("[DEBUG] Parsed keys: ");
-        for (JsonPair kv : doc.as<JsonObject>()) {
-            Serial.print(kv.key().c_str());
-            Serial.print(" ");
-        }
-        Serial.println();
+        // Serial.print("[DEBUG] Parsed keys: ");
+        // for (JsonPair kv : doc.as<JsonObject>()) {
+        //     Serial.print(kv.key().c_str());
+        //     Serial.print(" ");
+        // }
+        // Serial.println();
 
         String command = doc["command"] | "";
         if (command == "READALL") {
             JsonDocument outDoc;
             configToJson(outDoc);
+            outDoc["version"] = FIRMWARE_VERSION;
             serializeJson(outDoc, Serial);
             Serial.println();
         } else if (command == "SAVEALL") {
@@ -41,11 +43,7 @@ void processWebSerialConfig() {
                 loadConfigFromEEPROM(); // Ensure in-memory state matches EEPROM
 
                 // Flash both LEDs 5 times quickly using led_utils
-                for (int i = 0; i < 5; i++) {
-                    triggerSerialLED();
-                    triggerUsbLED();
-                    delay(100);
-                }
+                blinkBothLEDs(5, 100);
 
                 Serial.println("{\"status\":\"Success\",\"command\":\"SAVEALL\"}");
             } else {
