@@ -9,8 +9,8 @@ This repo container the firmware needed to run the usbc-midi adapter
 
 ## Required Arduino Libraries
 
-* Adafruit TinyUSB Library @ 3.4.5
 * EZ_MIDI_USB_HOST @ 2.1.0
 * MIDI Library @ 5.0.2
 * PICO PIO USB @ 0.6.1. 0.7.x doesn't work
 * usb_midi_host @ 1.1.4
+* ArduinoJson @ 7.4.1
