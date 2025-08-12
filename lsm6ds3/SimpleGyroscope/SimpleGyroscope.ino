@@ -23,7 +23,7 @@ void setup() {
   Wire.setSCL(I2C_SCL_PIN);
   Serial.begin(9600);
   while (!Serial);
-  IMU = LSM6DS3Class(Wire1, LSM6DS3_ADDRESS);
+  IMU = LSM6DS3Class(Wire, LSM6DS3_ADDRESS);
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
 
