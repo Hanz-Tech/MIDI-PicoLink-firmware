@@ -10,8 +10,11 @@
 #include <Wire.h>
 #include <math.h>
 
-#define IMU_ADDRESS 0x6B    // LSM6DS3 I2C address
-LSM6DS3 IMU;               // LSM6DS3 IMU instance
+// #define IMU_ADDRESS 0x6B    // LSM6DS3 I2C address
+// LSM6DS3 IMU(Wire1);               // LSM6DS3 IMU instance
+
+#define IMU_ADDRESS 0x68    // LSM6DS3 I2C address
+MPU6050 IMU(Wire1);         // MPU6050 IMU instance
 
 // Variables for angle calculation
 float roll = 0.0, pitch = 0.0, yaw = 0.0;
@@ -37,9 +40,9 @@ float accelXoffset = 0.0, accelYoffset = 0.0, accelZoffset = 0.0;
 const int calibrationSamples = 100;
 bool calibrated = false;
 
-// Configure I2C pins for RP2040
-const int I2C_SDA_PIN = 4;  // Default SDA pin
-const int I2C_SCL_PIN = 5;  // Default SCL pin
+// Configure I2C pins for RP2040 - Wire1 custom pins
+const int I2C1_SDA_PIN = 26;  // Custom SDA pin for Wire1
+const int I2C1_SCL_PIN = 27;  // Custom SCL pin for Wire1
 
 calData calib = { 0 };  // Calibration data from FastIMU
 
@@ -51,13 +54,13 @@ void setup(void) {
   Serial.println("LSM6DS3 Angle Calculation Demo");
   Serial.println("==============================");
 
-  // Configure I2C pins for RP2040
-  Wire.setSDA(I2C_SDA_PIN);
-  Wire.setSCL(I2C_SCL_PIN);
+  // Configure I2C pins for Wire1
+  Wire1.setSDA(I2C1_SDA_PIN);
+  Wire1.setSCL(I2C1_SCL_PIN);
   
-  // Initialize I2C
-  Wire.begin();
-  Wire.setClock(400000); // 400kHz clock
+  // Initialize I2C with Wire1
+  Wire1.begin();
+  Wire1.setClock(400000); // 400kHz clock
 
   // Initialize LSM6DS3
   int err = IMU.init(calib, IMU_ADDRESS);
