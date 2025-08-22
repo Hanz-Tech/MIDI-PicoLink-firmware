@@ -1,4 +1,4 @@
-#include <usb_midi_host.h>
+#include <cstdint>  // Fix for uint8_t in pio_usb_configuration.h
 #include "pio_usb_configuration.h"
 #include <Arduino.h>
 #include <MIDI.h>
@@ -16,7 +16,6 @@
 
 // USB Host configuration
 #define HOST_PIN_DP   12   // Pin used as D+ for host, D- = D+ + 1
-#include "EZ_USB_MIDI_HOST.h"
 
 // Serial MIDI pins configuration - MOVED TO serial_midi.cpp
 // int serialRxPin = 1;   // GPIO pin for Serial1 RX
@@ -25,6 +24,7 @@
 // USB MIDI device address (set by onMIDIconnect callback in usb_host_wrapper.cpp)
 // Make sure this is defined (not static) in usb_host_wrapper.cpp so it's linkable
 extern uint8_t midi_dev_addr;
+extern bool midi_host_mounted;
 
 bool isConnectedToComputer = false;
 
@@ -39,12 +39,6 @@ Adafruit_USBH_Host USBHost;
 
 // USB Host MIDI
 USING_NAMESPACE_MIDI
-USING_NAMESPACE_EZ_USB_MIDI_HOST
-
-
-// Instantiate MIDI host with custom settings
-EZ_USB_MIDI_HOST<MyCustomSettings> myMidiHost;
-EZ_USB_MIDI_HOST<MyCustomSettings>& midiHost = myMidiHost; // This reference should be fine
 
 
 volatile bool core1_booting = true;
@@ -115,8 +109,8 @@ void setup() {
   // Initialize USB MIDI device
   char serialstr[32] = "usbc-midi-0001";
   USBDevice.setSerialDescriptor(serialstr);
-  USBDevice.setManufacturerDescriptor("XYZ MIDI Mfg");
-  USBDevice.setProductDescriptor("XYZDevice ");
+  USBDevice.setManufacturerDescriptor("HanzTech");
+  USBDevice.setProductDescriptor("PicoLink");
 
   usb_midi.begin();
 
@@ -189,9 +183,8 @@ void setup() {
 
 // Main loop for core 0
 void loop() {
-  // Process USB Host MIDI
-  usb_host_wrapper_task();
-
+  // Note: USB Host task now runs on core1 in loop1()
+  
   // Process USB Device MIDI only if connected to a computer
   if (isConnectedToComputer) {
     USB_D.read();
@@ -229,7 +222,7 @@ void setup1() {
     while(1) delay(1);
   }
 
-  // Configure PIO USB
+  // Configure PIO USB with proper structure
   pio_usb_configuration_t pio_cfg = PIO_USB_DEFAULT_CONFIG;
   pio_cfg.pin_dp = HOST_PIN_DP;
 
@@ -239,13 +232,30 @@ void setup1() {
     pio_cfg.pio_tx_num = 1;
   #endif
 
+  dualPrintf("Core1: Configuring PIO USB with DP pin %u\r\n", HOST_PIN_DP);
   USBHost.configure_pio_usb(1, &pio_cfg);
 
-  // Initialize USB Host MIDI
-  myMidiHost.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
+  // Initialize USB Host - TinyUSB will automatically handle MIDI devices
+  dualPrintf("Core1: Starting USB Host...\r\n");
+  bool host_init_success = USBHost.begin(1);
+  if (host_init_success) {
+    dualPrintf("Core1: USB Host initialized successfully\r\n");
+  } else {
+    dualPrintf("Core1: USB Host initialization FAILED!\r\n");
+  }
+  
+  // Add a small delay to let USB host settle
+  delay(100);
+  
   rp2040.fifo.push(1);
   dualPrintln("Core1 setup to run TinyUSB host with pio-usb");
   dualPrintln("");
+}
+
+// Core1's loop - CRITICAL: This was missing!
+void loop1() {
+  // Call our USB host wrapper task which includes polling and USBHost.task()
+  usb_host_wrapper_task();
 }
 
 // Shared variables for LED state - Remains the same
@@ -259,12 +269,21 @@ void setup1() {
 // MODIFIED to use sendSerialMidi... functions
 
 void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
+  dualPrintf("DEBUG: usbh_onNoteOffHandle called - ch=%d, note=%d, vel=%d\r\n", channel, note, velocity);
+  
   // Channel filter
-  if (!isChannelEnabled(channel)) return;
+  if (!isChannelEnabled(channel)) {
+    dualPrintf("DEBUG: Channel %d is disabled, returning\r\n", channel);
+    return;
+  }
+  dualPrintf("DEBUG: Channel %d is enabled\r\n", channel);
+  
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
+    dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
   }
+  dualPrintf("DEBUG: USB Host Note messages are NOT filtered\r\n");
   
   dualPrintf("USB Host: Note Off - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
@@ -282,22 +301,33 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
 }
 
 void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
+  dualPrintf("DEBUG: usbh_onNoteOnHandle called - ch=%d, note=%d, vel=%d\r\n", channel, note, velocity);
+  
   // Channel filter
-  if (!isChannelEnabled(channel)) return;
+  if (!isChannelEnabled(channel)) {
+    dualPrintf("DEBUG: Channel %d is disabled, returning\r\n", channel);
+    return;
+  }
+  dualPrintf("DEBUG: Channel %d is enabled\r\n", channel);
+  
   // First check if this message type is filtered for USB Host
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
+    dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
   }
+  dualPrintf("DEBUG: USB Host Note messages are NOT filtered\r\n");
   
   dualPrintf("USB Host: Note On - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Device MIDI if not filtered and connected to computer
   if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
+    dualPrintf("  -> Forwarding to USB Device\r\n");
     USB_D.sendNoteOn(note, velocity, channel);
   }
   
   // Forward to Serial MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
+    dualPrintf("  -> Forwarding to Serial MIDI\r\n");
     sendSerialMidiNoteOn(channel, note, velocity);
   }
   
@@ -541,10 +571,7 @@ void usbd_onNoteOn(byte channel, byte note, byte velocity) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendNoteOn(note, velocity, channel);
-    }
+    sendNoteOn(channel, note, velocity);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -567,10 +594,7 @@ void usbd_onNoteOff(byte channel, byte note, byte velocity) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendNoteOff(note, velocity, channel);
-    }
+    sendNoteOff(channel, note, velocity);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -591,10 +615,7 @@ void usbd_onControlChange(byte channel, byte controller, byte value) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendControlChange(controller, value, channel);
-    }
+    sendControlChange(channel, controller, value);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -615,10 +636,7 @@ void usbd_onProgramChange(byte channel, byte program) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendProgramChange(program, channel);
-    }
+    sendProgramChange(channel, program);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -639,10 +657,7 @@ void usbd_onAftertouch(byte channel, byte pressure) { // Channel Aftertouch
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendAfterTouch(pressure, channel);
-    }
+    sendAfterTouch(channel, pressure);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -663,10 +678,7 @@ void usbd_onPitchBend(byte channel, int bend) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendPitchBend(bend, channel);
-    }
+    sendPitchBend(channel, bend);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -687,10 +699,7 @@ void usbd_onSysEx(byte * array, unsigned size) {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_SYSEX)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendSysEx(size, array);
-    }
+    sendSysEx(size, array);
   }
   
   // Forward to Serial MIDI if not filtered
@@ -713,10 +722,7 @@ void usbd_onClock() {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendRealTime(midi::Clock);
-    }
+    sendRealTime(0xF8); // MIDI Clock
   }
   
   // Forward to Serial MIDI if not filtered
@@ -737,10 +743,7 @@ void usbd_onStart() {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendRealTime(midi::Start);
-    }
+    sendRealTime(0xFA); // MIDI Start
   }
   
   // Forward to Serial MIDI if not filtered
@@ -761,10 +764,7 @@ void usbd_onContinue() {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendRealTime(midi::Continue);
-    }
+    sendRealTime(0xFB); // MIDI Continue
   }
   
   // Forward to Serial MIDI if not filtered
@@ -785,10 +785,7 @@ void usbd_onStop() {
   
   // Forward to USB Host MIDI if not filtered
   if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-    auto intf = midiHost.getInterfaceFromDeviceAndCable(midi_dev_addr, 0);
-    if (intf != nullptr) {
-      intf->sendRealTime(midi::Stop);
-    }
+    sendRealTime(0xFC); // MIDI Stop
   }
   
   // Forward to Serial MIDI if not filtered

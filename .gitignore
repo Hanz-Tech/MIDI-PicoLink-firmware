@@ -135,3 +135,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+rp2040/build
+.DS_Store

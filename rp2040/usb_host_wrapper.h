@@ -31,24 +31,54 @@
 
 #include <Adafruit_TinyUSB.h>
 #include "pio_usb.h"
-#include "EZ_USB_MIDI_HOST.h"
-
-USING_NAMESPACE_MIDI
-USING_NAMESPACE_EZ_USB_MIDI_HOST
 
 #define LANGUAGE_ID 0x0409  // English
 
-
-struct MyCustomSettings : public MidiHostSettingsDefault {
-    static const unsigned MidiRxBufsize = 512;
-};
-extern EZ_USB_MIDI_HOST<MyCustomSettings>& midiHost;
+// MIDI host state
+extern uint8_t midi_dev_addr;
+extern uint8_t midi_dev_idx;
+extern bool midi_host_mounted;
 extern Adafruit_USBH_Host USBHost;
 
-void initializeMidiHost(EZ_USB_MIDI_HOST<MidiHostSettingsDefault>& midiHostInstance);
-void registerMidiInCallbacks(uint8_t midiDevAddr);
-void unregisterMidiInCallbacks(uint8_t midiDevAddr);
+// TinyUSB MIDI host callback functions
+void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data);
+void tuh_midi_umount_cb(uint8_t idx);
+void tuh_midi_rx_cb(uint8_t idx, uint32_t xferred_bytes);
+void tuh_midi_tx_cb(uint8_t idx, uint32_t xferred_bytes);
+
+// Application callbacks
 void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables);
 void onMIDIdisconnect(uint8_t devAddr);
+
+// MIDI handler function declarations (implemented in main sketch)
+void usbh_onNoteOnHandle(byte channel, byte note, byte velocity);
+void usbh_onNoteOffHandle(byte channel, byte note, byte velocity);
+void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount);
+void usbh_onControlChangeHandle(byte channel, byte controller, byte value);
+void usbh_onProgramChangeHandle(byte channel, byte program);
+void usbh_onAftertouchHandle(byte channel, byte value);
+void usbh_onPitchBendHandle(byte channel, int value);
+void usbh_onSysExHandle(byte * array, unsigned size);
+void usbh_onMidiClockHandle();
+void usbh_onMidiStartHandle();
+void usbh_onMidiContinueHandle();
+void usbh_onMidiStopHandle();
+
+// MIDI packet processing
+void processMidiPacket(uint8_t packet[4]);
+bool sendMidiPacket(uint8_t packet[4]);
+
+// Helper functions to send specific MIDI messages
+bool sendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+bool sendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+bool sendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+bool sendProgramChange(uint8_t channel, uint8_t program);
+bool sendAfterTouch(uint8_t channel, uint8_t pressure);
+bool sendPolyAfterTouch(uint8_t channel, uint8_t note, uint8_t pressure);
+bool sendPitchBend(uint8_t channel, int bend);
+bool sendSysEx(unsigned size, byte* array);
+bool sendRealTime(uint8_t rtByte);
+
+// Task functions
 void usb_host_wrapper_task();
 #endif

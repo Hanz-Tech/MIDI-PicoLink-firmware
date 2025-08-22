@@ -4,13 +4,21 @@ This repo container the firmware needed to run the usbc-midi adapter
 
 # To build the code
 
-* Download Adruino IDe 
-* Install https://github.com/earlephilhower/arduino-pico @ 4.4.0 to support RP2040 Boards
+* Download Adruino IDE 
+* Install https://github.com/earlephilhower/arduino-pico @ 4.7.1 to support RP2040 Boards
+* Make sure you select 120MHz and the usb stack to Adafruit TinyUSB
+
+To compile in terminal
+```
+arduino-cli compile --fqbn rp2040:rp2040:rpipico:usbstack=tinyusb -v
+```
 
 ## Required Arduino Libraries
 
-* EZ_MIDI_USB_HOST @ 2.1.0
-* MIDI Library @ 5.0.2
-* PICO PIO USB @ 0.6.1. 0.7.x doesn't work
-* usb_midi_host @ 1.1.4
-* ArduinoJson @ 7.4.1
+Used library             Version Path
+Pico PIO USB             0.7.2   
+MIDI Library             5.0.2   
+Adafruit TinyUSB Library 3.7.1   Arduino15/packages/rp2040/hardware/rp2040/4.7.1/libraries/Adafruit_TinyUSB_Arduino
+SPI                      1.0     Arduino15/packages/rp2040/hardware/rp2040/4.7.1/libraries/SPI
+ArduinoJson              7.4.1   
+EEPROM                   1.0     
