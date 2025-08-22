@@ -90,11 +90,14 @@ void usbd_onStop();
 // ... (remove all serial_on... declarations)
 
 void setup() {
-  // Set custom USB serial device name
+  // Set custom USB serial device name FIRST, before any USB initialization
+  char serialstr[32] = "usbc-midi-0001";
+  USBDevice.setSerialDescriptor(serialstr);
+  USBDevice.setManufacturerDescriptor("HanzTech");
+  USBDevice.setProductDescriptor("MIDI PicoLink");
 
-
-  dualPrintln("DEBUG: Entered setup()"); // Core 0
-  Serial2.println("DEBUG: Core0 start Serial2"); // Core 0
+  dualPrintln("DEBUG: Entered setup()");
+  Serial2.println("DEBUG: Core0 start Serial2");
   // Configure LED pins
   pinMode(LED_IN_PIN, OUTPUT);
   pinMode(LED_OUT_PIN, OUTPUT);
@@ -106,12 +109,9 @@ void setup() {
   // Serial1.setRX(serialRxPin);
   // Serial1.setTX(serialTxPin);
 
-  // Initialize USB MIDI device
-  char serialstr[32] = "usbc-midi-0001";
-  USBDevice.setSerialDescriptor(serialstr);
-  USBDevice.setManufacturerDescriptor("HanzTech");
-  USBDevice.setProductDescriptor("PicoLink");
-
+  // Initialize USB MIDI device - descriptors already set at top of setup()
+  // Set the MIDI interface string descriptor
+  usb_midi.setStringDescriptor("MIDI PicoLink");
   usb_midi.begin();
 
   // Initialize USB MIDI device handlers
@@ -268,9 +268,7 @@ void loop1() {
 // These forward messages to USB Device MIDI and Serial MIDI
 // MODIFIED to use sendSerialMidi... functions
 
-void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
-  dualPrintf("DEBUG: usbh_onNoteOffHandle called - ch=%d, note=%d, vel=%d\r\n", channel, note, velocity);
-  
+void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {  
   // Channel filter
   if (!isChannelEnabled(channel)) {
     dualPrintf("DEBUG: Channel %d is disabled, returning\r\n", channel);
@@ -282,9 +280,7 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
-  }
-  dualPrintf("DEBUG: USB Host Note messages are NOT filtered\r\n");
-  
+  }  
   dualPrintf("USB Host: Note Off - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Device MIDI if not filtered and connected to computer
@@ -300,9 +296,7 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   triggerUsbLED();
 }
 
-void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
-  dualPrintf("DEBUG: usbh_onNoteOnHandle called - ch=%d, note=%d, vel=%d\r\n", channel, note, velocity);
-  
+void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {  
   // Channel filter
   if (!isChannelEnabled(channel)) {
     dualPrintf("DEBUG: Channel %d is disabled, returning\r\n", channel);
@@ -314,9 +308,7 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
   if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
     dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
-  }
-  dualPrintf("DEBUG: USB Host Note messages are NOT filtered\r\n");
-  
+  }  
   dualPrintf("USB Host: Note On - Channel: %d, Note: %d, Velocity: %d\n", channel, note, velocity);
   
   // Forward to USB Device MIDI if not filtered and connected to computer

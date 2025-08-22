@@ -74,10 +74,7 @@ void processMidiPacket(uint8_t packet[4]) {
     uint8_t msg[3] = {packet[1], packet[2], packet[3]};
         
     // Ignore invalid packets
-    if (cin == 0) {
-        dualPrintf("Ignoring packet with cin=0\r\n");
-        return;
-    }
+    if (cin == 0) return;
     
     // Extract message type and channel
     uint8_t status = msg[0];
@@ -88,16 +85,12 @@ void processMidiPacket(uint8_t packet[4]) {
     switch (msgType) {
         case 0x80: // Note Off
             if (cin == 0x8) {
-                dualPrintf("Calling USB Host Note Off handler: ch=%u, note=%u, vel=%u\r\n", 
-                           channel, msg[1], msg[2]);
                 usbh_onNoteOffHandle(channel, msg[1], msg[2]);
             }
             break;
             
         case 0x90: // Note On
             if (cin == 0x9) {
-                dualPrintf("Calling USB Host Note On handler: ch=%u, note=%u, vel=%u\r\n", 
-                           channel, msg[1], msg[2]);
                 usbh_onNoteOnHandle(channel, msg[1], msg[2]);
             }
             break;
