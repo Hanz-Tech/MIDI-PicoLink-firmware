@@ -131,31 +131,32 @@ async function connectSerial() {
       statusDiv.textContent = "Serial port connected.";
       statusDiv.className = "status";
       sendBtn.disabled = false;
-
-      // Request config and version
-      const readallCmd = JSON.stringify({ command: "READALL" }) + "\n";
-      await serialHandler.write(readallCmd);
-      logSent(readallCmd.trim());
-      // Read response (expecting config JSON with version)
-      for (let i = 0; i < 5; i++) {
-        const resp = await serialHandler.readLine();
-        if (resp) logRecv(resp);
-        try {
-          const config = JSON.parse(resp);
-          if (config.version) {
-            versionDiv.textContent = "Firmware Version: " + config.version;
-          } else {
-            versionDiv.textContent = "";
-          }
-          applyConfigToUI(config, true);
-          break;
-        } catch (e) {
-          // Not a JSON config, skip
-        }
-      }
     } else {
-      statusDiv.textContent = "Already connected.";
+      statusDiv.textContent = "Already connected. Reading current config...";
       statusDiv.className = "status";
+    }
+
+    // Request config and version (whether newly connected or already connected)
+    const readallCmd = JSON.stringify({ command: "READALL" }) + "\n";
+    await serialHandler.write(readallCmd);
+    logSent(readallCmd.trim());
+    // Read response (expecting config JSON with version)
+    for (let i = 0; i < 5; i++) {
+      const resp = await serialHandler.readLine();
+      if (resp) logRecv(resp);
+      try {
+        const config = JSON.parse(resp);
+        if (config.version) {
+          versionDiv.textContent = "Firmware Version: " + config.version;
+        } else {
+          versionDiv.textContent = "";
+        }
+        applyConfigToUI(config, true);
+        statusDiv.textContent = "Config loaded from device.";
+        break;
+      } catch (e) {
+        // Not a JSON config, skip
+      }
     }
   } catch (err: any) {
     statusDiv.textContent = "Error: " + err;
