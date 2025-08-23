@@ -90,11 +90,18 @@ void usbd_onStop();
 // ... (remove all serial_on... declarations)
 
 void setup() {
-  // Set custom USB serial device name FIRST, before any USB initialization
-  char serialstr[32] = "usbc-midi-0001";
-  USBDevice.setSerialDescriptor(serialstr);
-  USBDevice.setManufacturerDescriptor("HanzTech");
-  USBDevice.setProductDescriptor("MIDI PicoLink");
+  // Set USB device descriptors BEFORE any other initialization
+  // This must be done before any TinyUSB or USB MIDI calls
+  TinyUSBDevice.setID(0x239A, 0x8122);  // Use Adafruit's official VID/PID for MIDI
+  TinyUSBDevice.setManufacturerDescriptor("HanzTech");
+  TinyUSBDevice.setProductDescriptor("MIDI PicoLink");
+  TinyUSBDevice.setSerialDescriptor("PicoLink-001");
+  
+  // Initialize debug serial early
+  Serial.begin(115200);
+  Serial2.setRX(25);
+  Serial2.setTX(24);
+  Serial2.begin(115200);
 
   dualPrintln("DEBUG: Entered setup()");
   Serial2.println("DEBUG: Core0 start Serial2");
@@ -109,8 +116,7 @@ void setup() {
   // Serial1.setRX(serialRxPin);
   // Serial1.setTX(serialTxPin);
 
-  // Initialize USB MIDI device - descriptors already set at top of setup()
-  // Set the MIDI interface string descriptor
+  // Initialize USB MIDI device - descriptors set at top of setup()
   usb_midi.setStringDescriptor("MIDI PicoLink");
   usb_midi.begin();
 
@@ -129,15 +135,6 @@ void setup() {
   USB_D.setHandleStop(usbd_onStop);
 
   // Initialize Serial MIDI - MOVED TO setupSerialMidi()
-  // SERIAL_M.begin(MIDI_CHANNEL_OMNI);
-  // SERIAL_M.setHandleNoteOn(serial_onNoteOn);
-  // ... (remove all SERIAL_M.setHandle... calls)
-
-  // Initialize debug serial
-  Serial.begin(115200);
-  Serial2.setRX(25);
-  Serial2.setTX(24);
-  Serial2.begin(115200);
 
   // Add a timeout for USB device mounting (2 seconds max wait)
   uint32_t startTime = millis();
@@ -195,6 +192,9 @@ void loop() {
 
   // Handle Web Serial config commands (JSON over USB CDC)
   processWebSerialConfig();
+
+  // Handle delayed EEPROM saves (non-blocking)
+  handleDelayedEEPROMSave();
 
   // Handle LED indicators
   handleLEDs();
@@ -276,8 +276,12 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   }
   dualPrintf("DEBUG: Channel %d is enabled\r\n", channel);
   
+  // Debug: Check filter state in real-time
+  bool isFiltered = isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE);
+  dualPrintf("DEBUG: USB Host Note filter state: %s\r\n", isFiltered ? "BLOCKED" : "ALLOWED");
+  
   // First check if this message type is filtered for USB Host
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
+  if (isFiltered) {
     dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
   }  
@@ -304,8 +308,12 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
   }
   dualPrintf("DEBUG: Channel %d is enabled\r\n", channel);
   
+  // Debug: Check filter state in real-time
+  bool isFiltered = isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE);
+  dualPrintf("DEBUG: USB Host Note filter state: %s\r\n", isFiltered ? "BLOCKED" : "ALLOWED");
+  
   // First check if this message type is filtered for USB Host
-  if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
+  if (isFiltered) {
     dualPrintf("DEBUG: USB Host Note messages are filtered, returning\r\n");
     return; // Don't process the message if it's filtered
   }  
