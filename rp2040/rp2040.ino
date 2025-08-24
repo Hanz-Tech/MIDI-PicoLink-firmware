@@ -13,6 +13,7 @@
 #include "serial_utils.h"
 #include "web_serial_config.h"
 #include "config.h"
+#include "imu_handler.h"
 
 // USB Host configuration
 #define HOST_PIN_DP   12   // Pin used as D+ for host, D- = D+ + 1
@@ -165,6 +166,15 @@ void setup() {
   // Load persisted filter/channel config from EEPROM
   loadConfigFromEEPROM();
   
+  // Initialize IMU if enabled
+  if (setupIMU()) {
+    dualPrintln("IMU initialized successfully");
+    // Uncomment to auto-calibrate on startup
+    // calibrateIMU();
+  } else {
+    dualPrintln("IMU initialization failed or not enabled");
+  }
+  
 
   // Call the setup function for the Serial MIDI module
   setupSerialMidi();
@@ -195,6 +205,9 @@ void loop() {
 
   // Handle delayed EEPROM saves (non-blocking)
   handleDelayedEEPROMSave();
+
+  // Process IMU and send MIDI CC messages
+  loopIMU();
 
   // Handle LED indicators
   handleLEDs();

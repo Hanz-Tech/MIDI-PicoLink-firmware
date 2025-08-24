@@ -3,6 +3,7 @@
 #include "led_utils.h"
 #include "version.h"
 #include "midi_filters.h"
+#include "imu_handler.h"
 #include <ArduinoJson.h>
 #include <Arduino.h>
 
@@ -59,6 +60,10 @@ void processWebSerialConfig() {
             } else {
                 Serial.println("{\"status\":\"Invalid config JSON\",\"command\":\"SAVEALL\"}");
             }
+        } else if (command == "CALIBRATE_IMU") {
+            Serial.println("{\"status\":\"Starting IMU calibration\",\"command\":\"CALIBRATE_IMU\",\"message\":\"Keep device flat and still for 10 seconds\"}");
+            calibrateIMU();
+            Serial.println("{\"status\":\"Success\",\"command\":\"CALIBRATE_IMU\",\"message\":\"IMU calibration complete\"}");
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);
