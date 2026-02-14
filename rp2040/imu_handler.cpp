@@ -355,43 +355,43 @@ bool updateIMUConfigFromJson(const JsonDocument& doc) {
     // Roll configuration
     JsonObject roll = imu["roll"].as<JsonObject>();
     if (!roll.isNull()) {
-        if (roll.containsKey("enabled")) imuConfig.rollEnabled = roll["enabled"].as<bool>();
-        if (roll.containsKey("channel")) imuConfig.rollMidiChannel = roll["channel"].as<uint8_t>();
-        if (roll.containsKey("cc")) imuConfig.rollMidiCC = roll["cc"].as<uint8_t>();
-        if (roll.containsKey("defaultValue")) imuConfig.rollDefaultValue = roll["defaultValue"].as<uint8_t>();
-        if (roll.containsKey("toSerial")) imuConfig.rollToSerial = roll["toSerial"].as<bool>();
-        if (roll.containsKey("toUSBDevice")) imuConfig.rollToUSBDevice = roll["toUSBDevice"].as<bool>();
-        if (roll.containsKey("toUSBHost")) imuConfig.rollToUSBHost = roll["toUSBHost"].as<bool>();
-        if (roll.containsKey("sensitivity")) imuConfig.rollSensitivity = roll["sensitivity"].as<float>();
-        if (roll.containsKey("range")) imuConfig.rollRange = roll["range"].as<float>();
+        if (!roll["enabled"].isNull()) imuConfig.rollEnabled = roll["enabled"].as<bool>();
+        if (!roll["channel"].isNull()) imuConfig.rollMidiChannel = roll["channel"].as<uint8_t>();
+        if (!roll["cc"].isNull()) imuConfig.rollMidiCC = roll["cc"].as<uint8_t>();
+        if (!roll["defaultValue"].isNull()) imuConfig.rollDefaultValue = roll["defaultValue"].as<uint8_t>();
+        if (!roll["toSerial"].isNull()) imuConfig.rollToSerial = roll["toSerial"].as<bool>();
+        if (!roll["toUSBDevice"].isNull()) imuConfig.rollToUSBDevice = roll["toUSBDevice"].as<bool>();
+        if (!roll["toUSBHost"].isNull()) imuConfig.rollToUSBHost = roll["toUSBHost"].as<bool>();
+        if (!roll["sensitivity"].isNull()) imuConfig.rollSensitivity = roll["sensitivity"].as<float>();
+        if (!roll["range"].isNull()) imuConfig.rollRange = roll["range"].as<float>();
     }
     
     // Pitch configuration
     JsonObject pitch = imu["pitch"].as<JsonObject>();
     if (!pitch.isNull()) {
-        if (pitch.containsKey("enabled")) imuConfig.pitchEnabled = pitch["enabled"].as<bool>();
-        if (pitch.containsKey("channel")) imuConfig.pitchMidiChannel = pitch["channel"].as<uint8_t>();
-        if (pitch.containsKey("cc")) imuConfig.pitchMidiCC = pitch["cc"].as<uint8_t>();
-        if (pitch.containsKey("defaultValue")) imuConfig.pitchDefaultValue = pitch["defaultValue"].as<uint8_t>();
-        if (pitch.containsKey("toSerial")) imuConfig.pitchToSerial = pitch["toSerial"].as<bool>();
-        if (pitch.containsKey("toUSBDevice")) imuConfig.pitchToUSBDevice = pitch["toUSBDevice"].as<bool>();
-        if (pitch.containsKey("toUSBHost")) imuConfig.pitchToUSBHost = pitch["toUSBHost"].as<bool>();
-        if (pitch.containsKey("sensitivity")) imuConfig.pitchSensitivity = pitch["sensitivity"].as<float>();
-        if (pitch.containsKey("range")) imuConfig.pitchRange = pitch["range"].as<float>();
+        if (!pitch["enabled"].isNull()) imuConfig.pitchEnabled = pitch["enabled"].as<bool>();
+        if (!pitch["channel"].isNull()) imuConfig.pitchMidiChannel = pitch["channel"].as<uint8_t>();
+        if (!pitch["cc"].isNull()) imuConfig.pitchMidiCC = pitch["cc"].as<uint8_t>();
+        if (!pitch["defaultValue"].isNull()) imuConfig.pitchDefaultValue = pitch["defaultValue"].as<uint8_t>();
+        if (!pitch["toSerial"].isNull()) imuConfig.pitchToSerial = pitch["toSerial"].as<bool>();
+        if (!pitch["toUSBDevice"].isNull()) imuConfig.pitchToUSBDevice = pitch["toUSBDevice"].as<bool>();
+        if (!pitch["toUSBHost"].isNull()) imuConfig.pitchToUSBHost = pitch["toUSBHost"].as<bool>();
+        if (!pitch["sensitivity"].isNull()) imuConfig.pitchSensitivity = pitch["sensitivity"].as<float>();
+        if (!pitch["range"].isNull()) imuConfig.pitchRange = pitch["range"].as<float>();
     }
     
     // Yaw configuration
     JsonObject yaw = imu["yaw"].as<JsonObject>();
     if (!yaw.isNull()) {
-        if (yaw.containsKey("enabled")) imuConfig.yawEnabled = yaw["enabled"].as<bool>();
-        if (yaw.containsKey("channel")) imuConfig.yawMidiChannel = yaw["channel"].as<uint8_t>();
-        if (yaw.containsKey("cc")) imuConfig.yawMidiCC = yaw["cc"].as<uint8_t>();
-        if (yaw.containsKey("defaultValue")) imuConfig.yawDefaultValue = yaw["defaultValue"].as<uint8_t>();
-        if (yaw.containsKey("toSerial")) imuConfig.yawToSerial = yaw["toSerial"].as<bool>();
-        if (yaw.containsKey("toUSBDevice")) imuConfig.yawToUSBDevice = yaw["toUSBDevice"].as<bool>();
-        if (yaw.containsKey("toUSBHost")) imuConfig.yawToUSBHost = yaw["toUSBHost"].as<bool>();
-        if (yaw.containsKey("sensitivity")) imuConfig.yawSensitivity = yaw["sensitivity"].as<float>();
-        if (yaw.containsKey("range")) imuConfig.yawRange = yaw["range"].as<float>();
+        if (!yaw["enabled"].isNull()) imuConfig.yawEnabled = yaw["enabled"].as<bool>();
+        if (!yaw["channel"].isNull()) imuConfig.yawMidiChannel = yaw["channel"].as<uint8_t>();
+        if (!yaw["cc"].isNull()) imuConfig.yawMidiCC = yaw["cc"].as<uint8_t>();
+        if (!yaw["defaultValue"].isNull()) imuConfig.yawDefaultValue = yaw["defaultValue"].as<uint8_t>();
+        if (!yaw["toSerial"].isNull()) imuConfig.yawToSerial = yaw["toSerial"].as<bool>();
+        if (!yaw["toUSBDevice"].isNull()) imuConfig.yawToUSBDevice = yaw["toUSBDevice"].as<bool>();
+        if (!yaw["toUSBHost"].isNull()) imuConfig.yawToUSBHost = yaw["toUSBHost"].as<bool>();
+        if (!yaw["sensitivity"].isNull()) imuConfig.yawSensitivity = yaw["sensitivity"].as<float>();
+        if (!yaw["range"].isNull()) imuConfig.yawRange = yaw["range"].as<float>();
     }
     
     dualPrintln("[DEBUG] IMU config updated from JSON");
