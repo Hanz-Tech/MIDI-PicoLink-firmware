@@ -177,6 +177,6 @@ void routeMidiMessage(MidiSource source, const MidiMessage &msg) {
     }
 
     if (msg.type != MIDI_MSG_REALTIME || msg.rtType != midi::Clock) {
-        dualPrintf("Router: src=%d type=%d ch=%d\r\n", source, msg.type, msg.channel);
+        dualPrintf("Router: src=%d type=%d ch=%d d1=%d d2=%d\r\n", source, msg.type, msg.channel, msg.data1, msg.data2);
     }
 }
