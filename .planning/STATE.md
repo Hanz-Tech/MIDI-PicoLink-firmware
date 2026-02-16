@@ -9,12 +9,13 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 1 of 4 (Generic MIDI Router)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-16 — Roadmap revised (phase reorder)
+**Phase:** 1 of 4 (Generic MIDI Router)
+**Current Plan:** 2
+**Total Plans in Phase:** 2
+**Status:** Ready to execute
+**Last Activity:** 2026-02-16
 
-Progress: [▓▓▓▓▓░░░░░] 50%
+**Progress:** [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -34,6 +35,7 @@ Progress: [▓▓▓▓▓░░░░░] 50%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P02 | 8 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -45,6 +47,7 @@ Recent decisions affecting current work:
 - [Init]: Refactor before bug fixes — clean code structure makes bug fixes easier
 - [Init]: Generic MIDI router function — eliminates 33+ duplicated handlers, prerequisite for CV/Clock milestone
 - [Phase 01 Plan 01]: Use pico mutex for paired USB host state updates to avoid interrupt-disabling critical sections
+- [Phase 01]: Use MidiMessage subType to distinguish NoteOn vs NoteOff for router forwarding
 
 ### Pending Todos
 
@@ -57,6 +60,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-16
-Stopped at: Completed 01-generic-midi-router-01-PLAN.md
-Resume file: None
+**Last session:** 2026-02-16T17:05:22.778Z
+**Stopped At:** Completed 01-generic-midi-router-02-PLAN.md
+**Resume file:** None
