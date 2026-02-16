@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No duplicated routing logic exists — each MIDI handler calls `routeMidiMessage()` with message type, source, and data
   3. Cross-core shared variables (`midi_host_mounted`, `midi_dev_addr`, `isConnectedToComputer`) are marked `volatile` and access is synchronized with appropriate primitives (spinlocks or mutexes)
   4. MIDI messages route correctly between all three interfaces with the same filtering behavior as before the refactor
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Create midi_router module with routeMidiMessage() + cross-core safety (ARCH-06)
+- [ ] 01-02-PLAN.md — Rewire all 33+ handlers to use routeMidiMessage() + verify compilation (ARCH-01)
 
 ### Phase 2: Module Structure
 **Goal**: The monolithic rp2040.ino is split into focused modules with all hardware pin assignments in one place, creating clear homes for the router refactor and future features
@@ -43,11 +43,11 @@ Plans:
   2. USB Host MIDI handlers live in a dedicated module separate from rp2040.ino
   3. USB Device MIDI handlers live in a dedicated module separate from rp2040.ino (or consolidated with Host handlers in a single midi module)
   4. Firmware compiles and all three MIDI interfaces (USB Host, USB Device, Serial) route messages identically to before the split
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Create pin_config.h and centralize all GPIO pin definitions (ARCH-03)
+- [ ] 02-02-PLAN.md — Extract USB Host + Device handlers into dedicated modules, slim rp2040.ino (ARCH-02)
 
 ### Phase 3: Non-Blocking Patterns
 **Goal**: The main loop never blocks on LED animations or IMU calibration, ensuring consistent MIDI routing latency and preparing for timing-critical clock output in the next milestone
@@ -84,7 +84,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Generic MIDI Router | 0/0 | Not started | - |
-| 2. Module Structure | 0/0 | Not started | - |
+| 1. Generic MIDI Router | 0/2 | Planned | - |
+| 2. Module Structure | 0/2 | Planned | - |
 | 3. Non-Blocking Patterns | 0/0 | Not started | - |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
