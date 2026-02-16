@@ -86,20 +86,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
-| ARCH-05 | — | Pending |
-| ARCH-06 | — | Pending |
-| PERF-01 | — | Pending |
-| PERF-02 | — | Pending |
+| ARCH-01 | Phase 1: Generic MIDI Router | Pending |
+| ARCH-06 | Phase 1: Generic MIDI Router | Pending |
+| ARCH-02 | Phase 2: Module Structure | Pending |
+| ARCH-03 | Phase 2: Module Structure | Pending |
+| PERF-01 | Phase 3: Non-Blocking Patterns | Pending |
+| PERF-02 | Phase 3: Non-Blocking Patterns | Pending |
+| ARCH-04 | Phase 4: Debug Infrastructure | Pending |
+| ARCH-05 | Phase 4: Debug Infrastructure | Pending |
 
 **Coverage:**
 - v1 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-15*
-*Last updated: 2026-02-15 after initial definition*
+*Last updated: 2026-02-16 after roadmap revision*
