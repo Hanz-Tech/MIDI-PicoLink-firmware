@@ -4,10 +4,8 @@
 #include "led_utils.h" // For triggerSerialLED()
 #include "midi_instances.h"
 #include "midi_filters.h" // Include the MIDI filters
+#include "midi_router.h"
 #include "serial_utils.h" // Include the dual printing utilities
-
-// --- External References ---
-extern bool isConnectedToComputer; // Flag indicating if connected to computer or power bank
 
 // --- Configuration ---
 int serialRxPin = 1;  // GPIO pin for Serial1 RX
@@ -20,8 +18,8 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, SERIAL_M);
 // --- External References ---
 // These objects are defined in the main sketch or other included files
 // and are needed here to forward MIDI messages *from* Serial MIDI *to* USB Host and Device.
-extern uint8_t midi_dev_addr; // Set by USB Host connection callback
-extern bool midi_host_mounted; // Set by USB Host connection callback
+extern volatile uint8_t midi_dev_addr; // Set by USB Host connection callback
+extern volatile bool midi_host_mounted; // Set by USB Host connection callback
 // USB_D is now created by the macro in midi_instances.h
 
 
@@ -117,235 +115,96 @@ void sendSerialMidiRealTime(midi::MidiType type) {
 // These handle messages *received from* Serial MIDI and forward them
 
 void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED(); // Trigger LED for serial MIDI activity
-    dualPrintf("Serial MIDI In: Note On - Ch: %d, Note: %d, Vel: %d\n", channel, note, velocity);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
-        sendNoteOn(channel, note, velocity);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
-        USB_D.sendNoteOn(note, velocity, channel);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_NOTE;
+    msg.subType = 0;
+    msg.channel = channel;
+    msg.data1 = note;
+    msg.data2 = velocity;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_NOTE)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: Note Off - Ch: %d, Note: %d, Vel: %d\n", channel, note, velocity);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_NOTE)) {
-        sendNoteOff(channel, note, velocity);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_NOTE)) {
-        USB_D.sendNoteOff(note, velocity, channel);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_NOTE;
+    msg.subType = 1;
+    msg.channel = channel;
+    msg.data1 = note;
+    msg.data2 = velocity;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnControlChange(byte channel, byte controller, byte value) {
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: CC - Ch: %d, CC: %d, Val: %d\n", channel, controller, value);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
-        sendControlChange(channel, controller, value);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_CONTROL_CHANGE)) {
-        USB_D.sendControlChange(controller, value, channel);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_CONTROL_CHANGE;
+    msg.channel = channel;
+    msg.data1 = controller;
+    msg.data2 = value;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnProgramChange(byte channel, byte program) {
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: Prgm Chg - Ch: %d, Pgm: %d\n", channel, program);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
-        sendProgramChange(channel, program);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_PROGRAM_CHANGE)) {
-        USB_D.sendProgramChange(program, channel);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_PROGRAM_CHANGE;
+    msg.channel = channel;
+    msg.data1 = program;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnAftertouch(byte channel, byte pressure) { // Channel Aftertouch
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: Ch Aftertouch - Ch: %d, Pressure: %d\n", channel, pressure);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
-        sendAfterTouch(channel, pressure);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_CHANNEL_AFTERTOUCH)) {
-        USB_D.sendAfterTouch(pressure, channel);
-    }
+void localSerialOnAftertouch(byte channel, byte pressure) {
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_CHANNEL_AFTERTOUCH;
+    msg.channel = channel;
+    msg.data1 = pressure;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnPitchBend(byte channel, int bend) {
-    // Channel filter
-    if (!isChannelEnabled(channel)) return;
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: Pitch Bend - Ch: %d, Bend: %d\n", channel, bend);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
-        sendPitchBend(channel, bend);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_PITCH_BEND)) {
-        USB_D.sendPitchBend(bend, channel);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_PITCH_BEND;
+    msg.channel = channel;
+    msg.pitchBend = bend;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnSysEx(byte * array, unsigned size) {
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_SYSEX)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintf("Serial MIDI In: SysEx - Size: %d\n", size);
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_SYSEX)) {
-        sendSysEx(size, array);
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_SYSEX)) {
-        USB_D.sendSysEx(size, array);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_SYSEX;
+    msg.channel = 0;
+    msg.sysexData = array;
+    msg.sysexSize = size;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnClock() {
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    // triggerSerialLED();
-    // Avoid printing every clock message to prevent flooding Serial monitor
-    // Serial2.println("Serial MIDI In: Clock");
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        sendRealTime(0xF8); // MIDI Clock
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        USB_D.sendRealTime(midi::Clock);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_REALTIME;
+    msg.channel = 0;
+    msg.rtType = midi::Clock;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 
 void localSerialOnStart() {
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintln("Serial MIDI In: Start");
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        sendRealTime(0xFA); // MIDI Start
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        USB_D.sendRealTime(midi::Start);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_REALTIME;
+    msg.channel = 0;
+    msg.rtType = midi::Start;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnContinue() {
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintln("Serial MIDI In: Continue");
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        sendRealTime(0xFB); // MIDI Continue
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        USB_D.sendRealTime(midi::Continue);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_REALTIME;
+    msg.channel = 0;
+    msg.rtType = midi::Continue;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
 void localSerialOnStop() {
-    // First check if this message type is filtered for Serial MIDI
-    if (isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_SERIAL, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        return; // Don't process the message if it's filtered
-    }
-    
-    triggerSerialLED();
-    dualPrintln("Serial MIDI In: Stop");
-
-    // Forward to USB Host MIDI if not filtered
-    if (!isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_HOST, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        sendRealTime(0xFC); // MIDI Stop
-    }
-
-    // Forward to USB Device MIDI if not filtered and connected to computer
-    if (isConnectedToComputer && !isMidiFiltered((MidiInterfaceType)MIDI_INTERFACE_USB_DEVICE, (MidiMsgType)MIDI_MSG_REALTIME)) {
-        USB_D.sendRealTime(midi::Stop);
-    }
+    MidiMessage msg = {};
+    msg.type = MIDI_MSG_REALTIME;
+    msg.channel = 0;
+    msg.rtType = midi::Stop;
+    routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }

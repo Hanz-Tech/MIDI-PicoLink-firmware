@@ -6,7 +6,7 @@
 #include "led_utils.h"
 #include "serial_utils.h"
 
-extern bool isConnectedToComputer;
+extern volatile bool isConnectedToComputer;
 
 static uint8_t realTimeByteFromType(midi::MidiType type) {
     switch (type) {
@@ -28,7 +28,7 @@ static void forwardToInterface(MidiInterfaceType dest, const MidiMessage &msg) {
         case MIDI_INTERFACE_USB_HOST: {
             switch (msg.type) {
                 case MIDI_MSG_NOTE:
-                    if (!msg.noteOn) {
+                    if (msg.subType == 1) {
                         sendNoteOff(msg.channel, msg.data1, msg.data2);
                     } else {
                         sendNoteOn(msg.channel, msg.data1, msg.data2);
@@ -63,7 +63,7 @@ static void forwardToInterface(MidiInterfaceType dest, const MidiMessage &msg) {
         case MIDI_INTERFACE_USB_DEVICE: {
             switch (msg.type) {
                 case MIDI_MSG_NOTE:
-                    if (!msg.noteOn) {
+                    if (msg.subType == 1) {
                         USB_D.sendNoteOff(msg.data1, msg.data2, msg.channel);
                     } else {
                         USB_D.sendNoteOn(msg.data1, msg.data2, msg.channel);
@@ -98,7 +98,7 @@ static void forwardToInterface(MidiInterfaceType dest, const MidiMessage &msg) {
         case MIDI_INTERFACE_SERIAL: {
             switch (msg.type) {
                 case MIDI_MSG_NOTE:
-                    if (!msg.noteOn) {
+                    if (msg.subType == 1) {
                         sendSerialMidiNoteOff(msg.channel, msg.data1, msg.data2);
                     } else {
                         sendSerialMidiNoteOn(msg.channel, msg.data1, msg.data2);

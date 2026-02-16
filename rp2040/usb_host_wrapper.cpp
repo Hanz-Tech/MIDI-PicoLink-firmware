@@ -11,7 +11,7 @@ volatile uint8_t midi_dev_addr = 0;
 uint8_t midi_dev_idx = 0;
 volatile bool midi_host_mounted = false;
 
-static auto_init_mutex(midi_host_mutex);
+auto_init_mutex(midi_host_mutex);
 
 // Add general USB host callbacks for debugging
 void tuh_mount_cb(uint8_t daddr) {
