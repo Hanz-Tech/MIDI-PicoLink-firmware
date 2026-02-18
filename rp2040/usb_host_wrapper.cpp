@@ -3,6 +3,7 @@
 #endif
 #include "usb_host_wrapper.h"
 #include "serial_utils.h"
+#include "led_utils.h"
 #include <MIDI.h>
 #include "pico/sync.h"
 
@@ -16,10 +17,12 @@ auto_init_mutex(midi_host_mutex);
 // Add general USB host callbacks for debugging
 void tuh_mount_cb(uint8_t daddr) {
     dualPrintf("USB Host: Device mounted at address %u\r\n", daddr);
+    triggerUsbLED();
 }
 
 void tuh_umount_cb(uint8_t daddr) {
     dualPrintf("USB Host: Device unmounted at address %u\r\n", daddr);
+    triggerUsbLED();
 }
 
 // Add configuration callback for more detailed debugging
@@ -32,6 +35,7 @@ bool tuh_configuration_set_cb(uint8_t daddr, uint8_t config_num) {
 void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data) {
     dualPrintf("USB Host: MIDI device mounted at idx %u with device addr %u\r\n", 
                idx, mount_cb_data->daddr);
+    triggerUsbLED();
     
     midi_dev_idx = idx;
     mutex_enter_blocking(&midi_host_mutex);
@@ -45,6 +49,7 @@ void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data) {
 
 void tuh_midi_umount_cb(uint8_t idx) {
     dualPrintf("MIDI device at idx %u unmounted\r\n", idx);
+    triggerUsbLED();
     
     if (midi_dev_idx == idx) {
         // Call application callback before clearing state
@@ -80,6 +85,7 @@ void tuh_midi_rx_cb(uint8_t idx, uint32_t xferred_bytes) {
     
     // Process all available packets
     while (tuh_midi_packet_read(idx, packet)) {
+        triggerUsbLED();
         processMidiPacket(packet);
     }
 }
