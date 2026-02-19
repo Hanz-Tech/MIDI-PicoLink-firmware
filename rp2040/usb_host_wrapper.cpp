@@ -2,6 +2,7 @@
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
 #endif
 #include "usb_host_wrapper.h"
+#include "usb_host_midi_handlers.h"
 #include "serial_utils.h"
 #include "led_utils.h"
 #include <MIDI.h>
@@ -339,20 +340,6 @@ void onTuneRequest() {
 void onSongSelect(byte songnumber) {
     dualPrintf("SongS#%u\r\n", songnumber);
 }
-
-// User must define these externally for their application
-extern void onNoteOff(byte channel, byte note, byte velocity);
-extern void onNoteOn(byte channel, byte note, byte velocity);
-extern void onPolyphonicAftertouch(byte channel, byte note, byte pressure);
-extern void onControlChange(byte channel, byte control, byte value);
-extern void onProgramChange(byte channel, byte program);
-extern void onAftertouch(byte channel, byte pressure);
-extern void onPitchBend(byte channel, int bend);
-extern void onSysEx(byte * array, unsigned size);
-extern void onMidiClock();
-extern void onMidiStart();
-extern void onMidiContinue();
-extern void onMidiStop();
 
 void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables) {
     dualPrintf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);

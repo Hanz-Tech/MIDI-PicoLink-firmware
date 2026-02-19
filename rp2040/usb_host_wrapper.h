@@ -31,6 +31,7 @@
 
 #include <Adafruit_TinyUSB.h>
 #include "pio_usb.h"
+#include "usb_host_midi_handlers.h"
 
 #define LANGUAGE_ID 0x0409  // English
 
@@ -49,20 +50,6 @@ void tuh_midi_tx_cb(uint8_t idx, uint32_t xferred_bytes);
 // Application callbacks
 void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables);
 void onMIDIdisconnect(uint8_t devAddr);
-
-// MIDI handler function declarations (implemented in main sketch)
-void usbh_onNoteOnHandle(byte channel, byte note, byte velocity);
-void usbh_onNoteOffHandle(byte channel, byte note, byte velocity);
-void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount);
-void usbh_onControlChangeHandle(byte channel, byte controller, byte value);
-void usbh_onProgramChangeHandle(byte channel, byte program);
-void usbh_onAftertouchHandle(byte channel, byte value);
-void usbh_onPitchBendHandle(byte channel, int value);
-void usbh_onSysExHandle(byte * array, unsigned size);
-void usbh_onMidiClockHandle();
-void usbh_onMidiStartHandle();
-void usbh_onMidiContinueHandle();
-void usbh_onMidiStopHandle();
 
 // MIDI packet processing
 void processMidiPacket(uint8_t packet[4]);

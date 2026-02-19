@@ -56,7 +56,7 @@ MIDI-PicoLink-firmware/
 ## Key File Locations
 
 **Entry Points:**
-- `rp2040/rp2040.ino`: Main firmware sketch — `setup()`, `loop()`, `setup1()`, `loop1()`, and all MIDI message handlers
+- `rp2040/rp2040.ino`: Main firmware sketch — `setup()`, `loop()`, `setup1()`, `loop1()` (handlers live in dedicated modules)
 - `web_configurator/src/app.ts`: Web configurator application entry — DOM event wiring, serial communication orchestration
 - `web_configurator/index.html`: Web configurator HTML — loaded directly in browser
 
@@ -75,6 +75,10 @@ MIDI-PicoLink-firmware/
 - `rp2040/midi_instances.cpp`: USB Device MIDI instance creation via `MIDI_CREATE_INSTANCE` macro
 - `rp2040/usb_host_wrapper.h`: USB Host MIDI function declarations, state variables
 - `rp2040/usb_host_wrapper.cpp`: USB Host MIDI packet parsing, TinyUSB callbacks, send helpers
+- `rp2040/usb_host_midi_handlers.h`: USB Host MIDI handler declarations and wrapper signatures
+- `rp2040/usb_host_midi_handlers.cpp`: USB Host MIDI handler implementations + C-style wrappers
+- `rp2040/usb_device_midi_handlers.h`: USB Device MIDI handler registration interface
+- `rp2040/usb_device_midi_handlers.cpp`: USB Device MIDI handlers + callback registration
 - `rp2040/serial_midi_handler.h`: Serial MIDI function declarations
 - `rp2040/serial_midi_handler.cpp`: Serial MIDI instance (`SERIAL_M`), setup, send/receive handlers
 
