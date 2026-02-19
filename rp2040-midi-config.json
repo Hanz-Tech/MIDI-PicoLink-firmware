@@ -1,0 +1,89 @@
+{
+  "command": "SAVEALL",
+  "filters": [
+    [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  ],
+  "channels": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "imu": {
+    "enabled": false,
+    "roll": {
+      "enabled": false,
+      "channel": 1,
+      "cc": 1,
+      "defaultValue": 64,
+      "toSerial": true,
+      "toUSBDevice": true,
+      "toUSBHost": true,
+      "sensitivity": 1,
+      "range": 45
+    },
+    "pitch": {
+      "enabled": false,
+      "channel": 1,
+      "cc": 2,
+      "defaultValue": 64,
+      "toSerial": true,
+      "toUSBDevice": true,
+      "toUSBHost": true,
+      "sensitivity": 1,
+      "range": 45
+    },
+    "yaw": {
+      "enabled": false,
+      "channel": 1,
+      "cc": 3,
+      "defaultValue": 64,
+      "toSerial": true,
+      "toUSBDevice": true,
+      "toUSBHost": true,
+      "sensitivity": 1,
+      "range": 45
+    }
+  }
+}

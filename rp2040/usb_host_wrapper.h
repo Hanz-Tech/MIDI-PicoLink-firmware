@@ -35,9 +35,9 @@
 #define LANGUAGE_ID 0x0409  // English
 
 // MIDI host state
-extern uint8_t midi_dev_addr;
+extern volatile uint8_t midi_dev_addr;
 extern uint8_t midi_dev_idx;
-extern bool midi_host_mounted;
+extern volatile bool midi_host_mounted;
 extern Adafruit_USBH_Host USBHost;
 
 // TinyUSB MIDI host callback functions
@@ -81,4 +81,7 @@ bool sendRealTime(uint8_t rtByte);
 
 // Task functions
 void usb_host_wrapper_task();
+
+// Thread-safe accessor for host state (returns mounted, writes addr)
+bool getMidiHostState(uint8_t *addr);
 #endif

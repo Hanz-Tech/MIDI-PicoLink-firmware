@@ -3,20 +3,26 @@
 #endif
 #include "usb_host_wrapper.h"
 #include "serial_utils.h"
+#include "led_utils.h"
 #include <MIDI.h>
+#include "pico/sync.h"
 
 // MIDI host state variables
-uint8_t midi_dev_addr = 0;
+volatile uint8_t midi_dev_addr = 0;
 uint8_t midi_dev_idx = 0;
-bool midi_host_mounted = false;
+volatile bool midi_host_mounted = false;
+
+auto_init_mutex(midi_host_mutex);
 
 // Add general USB host callbacks for debugging
 void tuh_mount_cb(uint8_t daddr) {
     dualPrintf("USB Host: Device mounted at address %u\r\n", daddr);
+    triggerUsbLED();
 }
 
 void tuh_umount_cb(uint8_t daddr) {
     dualPrintf("USB Host: Device unmounted at address %u\r\n", daddr);
+    triggerUsbLED();
 }
 
 // Add configuration callback for more detailed debugging
@@ -29,10 +35,13 @@ bool tuh_configuration_set_cb(uint8_t daddr, uint8_t config_num) {
 void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data) {
     dualPrintf("USB Host: MIDI device mounted at idx %u with device addr %u\r\n", 
                idx, mount_cb_data->daddr);
+    triggerUsbLED();
     
     midi_dev_idx = idx;
+    mutex_enter_blocking(&midi_host_mutex);
     midi_dev_addr = mount_cb_data->daddr;
     midi_host_mounted = true;
+    mutex_exit(&midi_host_mutex);
     
     // Call application callback with estimated cable counts
     onMIDIconnect(midi_dev_addr, 1, 1); // Default to 1 IN and 1 OUT cable
@@ -40,15 +49,34 @@ void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data) {
 
 void tuh_midi_umount_cb(uint8_t idx) {
     dualPrintf("MIDI device at idx %u unmounted\r\n", idx);
+    triggerUsbLED();
     
     if (midi_dev_idx == idx) {
         // Call application callback before clearing state
         onMIDIdisconnect(midi_dev_addr);
         
         midi_dev_idx = 0;
+        mutex_enter_blocking(&midi_host_mutex);
         midi_dev_addr = 0;
         midi_host_mounted = false;
+        mutex_exit(&midi_host_mutex);
     }
+}
+
+bool getMidiHostState(uint8_t *addr) {
+    bool mounted = false;
+    uint8_t current_addr = 0;
+
+    mutex_enter_blocking(&midi_host_mutex);
+    mounted = midi_host_mounted;
+    current_addr = midi_dev_addr;
+    mutex_exit(&midi_host_mutex);
+
+    if (addr != nullptr) {
+        *addr = current_addr;
+    }
+
+    return mounted;
 }
 
 void tuh_midi_rx_cb(uint8_t idx, uint32_t xferred_bytes) {    
@@ -57,6 +85,7 @@ void tuh_midi_rx_cb(uint8_t idx, uint32_t xferred_bytes) {
     
     // Process all available packets
     while (tuh_midi_packet_read(idx, packet)) {
+        triggerUsbLED();
         processMidiPacket(packet);
     }
 }
@@ -177,8 +206,13 @@ void processMidiPacket(uint8_t packet[4]) {
 // Send a MIDI packet to the host device
 bool sendMidiPacket(uint8_t packet[4]) {
     if (!midi_host_mounted) return false;
-    
-    return tuh_midi_packet_write(midi_dev_idx, packet);
+
+    if (!tuh_midi_packet_write(midi_dev_idx, packet)) {
+        return false;
+    }
+
+    tuh_midi_write_flush(midi_dev_idx);
+    return true;
 }
 
 // Helper functions to send specific MIDI messages
@@ -322,14 +356,18 @@ extern void onMidiStop();
 
 void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables) {
     dualPrintf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);
+    mutex_enter_blocking(&midi_host_mutex);
     midi_dev_addr = devAddr;
+    mutex_exit(&midi_host_mutex);
 }
 
 void onMIDIdisconnect(uint8_t devAddr) {
     dualPrintf("MIDI device at address %u unplugged\r\n", devAddr);
+    mutex_enter_blocking(&midi_host_mutex);
     if (midi_dev_addr == devAddr) {
         midi_dev_addr = 0;
     }
+    mutex_exit(&midi_host_mutex);
 }
 
 void usb_host_wrapper_task() {

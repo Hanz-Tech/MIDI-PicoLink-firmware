@@ -7,14 +7,14 @@ bool debug = true;
 // Print to both Serial and Serial2
 void dualPrint(const String &message) {
     if (debug) {
-        Serial.print(message);
+        if (Serial) Serial.print(message);
         Serial2.print(message);
     }
 }
 
 void dualPrintln(const String &message) {
     if (debug) {
-        Serial.println(message);
+        if (Serial) Serial.println(message);
         Serial2.println(message);
     }
 }
@@ -31,7 +31,7 @@ void dualPrintf(const char *format, ...) {
         va_end(args);
         
         // Print to both Serial and Serial2
-        Serial.print(buffer);
+        if (Serial) Serial.print(buffer);
         Serial2.print(buffer);
     }
 }
