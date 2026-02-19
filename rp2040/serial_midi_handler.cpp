@@ -117,7 +117,7 @@ void sendSerialMidiRealTime(midi::MidiType type) {
 void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_NOTE;
-    msg.subType = 0;
+    msg.subType = (velocity == 0) ? 1 : 0;
     msg.channel = channel;
     msg.data1 = note;
     msg.data2 = velocity;
