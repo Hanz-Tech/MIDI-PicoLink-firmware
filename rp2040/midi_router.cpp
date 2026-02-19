@@ -157,10 +157,6 @@ void routeMidiMessage(MidiSource source, const MidiMessage &msg) {
             continue;
         }
 
-        if (isMidiFiltered(dest, msg.type)) {
-            continue;
-        }
-
         if (dest == MIDI_INTERFACE_USB_DEVICE && !isConnectedToComputer) {
             continue;
         }
