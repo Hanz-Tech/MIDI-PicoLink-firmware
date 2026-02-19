@@ -206,8 +206,13 @@ void processMidiPacket(uint8_t packet[4]) {
 // Send a MIDI packet to the host device
 bool sendMidiPacket(uint8_t packet[4]) {
     if (!midi_host_mounted) return false;
-    
-    return tuh_midi_packet_write(midi_dev_idx, packet);
+
+    if (!tuh_midi_packet_write(midi_dev_idx, packet)) {
+        return false;
+    }
+
+    tuh_midi_write_flush(midi_dev_idx);
+    return true;
 }
 
 // Helper functions to send specific MIDI messages
