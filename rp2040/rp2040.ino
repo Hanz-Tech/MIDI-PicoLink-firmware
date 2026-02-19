@@ -15,13 +15,8 @@
 #include "web_serial_config.h"
 #include "config.h"
 #include "imu_handler.h"
+#include "pin_config.h"
 
-// USB Host configuration
-#define HOST_PIN_DP   12   // Pin used as D+ for host, D- = D+ + 1
-
-// Serial MIDI pins configuration - MOVED TO serial_midi.cpp
-// int serialRxPin = 1;   // GPIO pin for Serial1 RX
-// int serialTxPin = 0;   // GPIO pin for Serial1 TX
 
 // USB MIDI device address (set by onMIDIconnect callback in usb_host_wrapper.cpp)
 // Make sure this is defined (not static) in usb_host_wrapper.cpp so it's linkable
@@ -101,8 +96,8 @@ void setup() {
   
   // Initialize debug serial early
   Serial.begin(115200);
-  Serial2.setRX(25);
-  Serial2.setTX(24);
+  Serial2.setRX(DEBUG_UART_RX_PIN);
+  Serial2.setTX(DEBUG_UART_TX_PIN);
   Serial2.begin(115200);
 
   dualPrintln("DEBUG: Entered setup()");
@@ -113,10 +108,6 @@ void setup() {
   digitalWrite(LED_IN_PIN, LOW);
   digitalWrite(LED_OUT_PIN, LOW);
   initLEDs();
-
-  // Configure Serial1 pins - MOVED TO setupSerialMidi()
-  // Serial1.setRX(serialRxPin);
-  // Serial1.setTX(serialTxPin);
 
   // Initialize USB MIDI device - descriptors set at top of setup()
   usb_midi.setStringDescriptor("MIDI PicoLink");

@@ -6,10 +6,7 @@
 #include "midi_filters.h" // Include the MIDI filters
 #include "midi_router.h"
 #include "serial_utils.h" // Include the dual printing utilities
-
-// --- Configuration ---
-int serialRxPin = 1;  // GPIO pin for Serial1 RX
-int serialTxPin = 0;  // GPIO pin for Serial1 TX
+#include "pin_config.h"
 
 // --- MIDI Instances ---
 // Create Serial MIDI instance using Serial1
@@ -46,8 +43,8 @@ void localSerialOnStop();
 
 void setupSerialMidi() {
     // Configure Serial1 pins
-    Serial1.setRX(serialRxPin);
-    Serial1.setTX(serialTxPin);
+    Serial1.setRX(SERIAL_MIDI_RX_PIN);
+    Serial1.setTX(SERIAL_MIDI_TX_PIN);
 
     // Initialize Serial MIDI
     SERIAL_M.begin(MIDI_CHANNEL_OMNI);
@@ -64,7 +61,7 @@ void setupSerialMidi() {
     SERIAL_M.setHandleStop(localSerialOnStop);
     SERIAL_M.turnThruOff();
 
-    dualPrintf("Serial MIDI Module: Initialized using pins: RX=%d, TX=%d\n", serialRxPin, serialTxPin);
+    dualPrintf("Serial MIDI Module: Initialized using pins: RX=%d, TX=%d\n", SERIAL_MIDI_RX_PIN, SERIAL_MIDI_TX_PIN);
     dualPrintln("");
 }
 
