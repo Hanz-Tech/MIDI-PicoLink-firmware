@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-generic-midi-router
 source: 01-01-SUMMARY.md, 01-02-SUMMARY.md
 started: 2026-02-19T03:43:41Z
-updated: 2026-02-19T03:55:43Z
+updated: 2026-02-19T03:57:13Z
 ---
 
 ## Current Test
@@ -37,5 +37,12 @@ skipped: 0
   reason: "User reported: there is something wrong when serial midi notes gets passed to the usb device. It seems that some notes are stuck are some notes are not triggered at all. I see the logs in console about serial notes being registered in the rp2040"
   severity: major
   test: 2
-  artifacts: []
-  missing: []
+  root_cause: "Velocity-0 NoteOn from Serial MIDI is treated as NoteOn because subType is hardcoded to 0 and router only uses subType; velocity-0 NoteOn should be NoteOff"
+  artifacts:
+    - path: "rp2040/serial_midi_handler.cpp"
+      issue: "localSerialOnNoteOn sets subType=0 regardless of velocity"
+    - path: "rp2040/midi_router.cpp"
+      issue: "NOTE routing only uses subType; no velocity-0 normalization"
+  missing:
+    - "Normalize velocity-0 NoteOn to NoteOff (set subType=1 when velocity==0)"
+  debug_session: ".planning/debug/serial-midi-to-usbdevice-stuck-notes.md"
