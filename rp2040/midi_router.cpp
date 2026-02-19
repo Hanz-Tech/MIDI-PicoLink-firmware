@@ -161,6 +161,10 @@ void routeMidiMessage(MidiSource source, const MidiMessage &msg) {
             continue;
         }
 
+        if (dest == MIDI_INTERFACE_USB_HOST && !midi_host_mounted) {
+            continue;
+        }
+
         forwardToInterface(dest, msg);
     }
 
