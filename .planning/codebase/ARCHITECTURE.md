@@ -80,7 +80,7 @@
 **MIDI Message Routing (Serial → other interfaces):**
 
 1. Core 0 calls `loopSerialMidi()` → `SERIAL_M.read()` processes Serial1 data
-2. MIDI library parses bytes → dispatches to `localSerialOn*()` handlers in `serial_midi_handler.cpp`
+2. MIDI library parses bytes → dispatches to `serial_on*()` handlers in `serial_midi_handler.cpp`
 3. Handler checks channel filter, then Serial interface filter
 4. Forwards to USB Host via `sendNoteOn()`/etc. (raw packet construction in `usb_host_wrapper.cpp`)
 5. Forwards to USB Device via `USB_D.send*()` if connected

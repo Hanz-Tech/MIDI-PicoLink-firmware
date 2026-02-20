@@ -24,13 +24,13 @@ Apply the correct conventions based on which codebase you are modifying.
 
 **Functions:**
 - Use `camelCase` for all function names: `setupMidiFilters()`, `sendNoteOn()`, `handleLEDs()`
-- Prefix with module context for clarity: `sendSerialMidiNoteOn()`, `usbh_onNoteOnHandle()`
+- Prefix with module context for clarity: `sendSerialMidiNoteOn()`, `usbh_onNoteOn()`
 - Use `setup*` for initialization functions: `setupIMU()`, `setupSerialMidi()`, `setupMidiFilters()`
 - Use `loop*` for functions called in the main loop: `loopIMU()`, `loopSerialMidi()`
 - Use `handle*` for functions that process state: `handleLEDs()`, `handleDelayedEEPROMSave()`
-- Prefix USB Host handler callbacks with `usbh_on*Handle`: `usbh_onNoteOnHandle()`
+- Prefix USB Host handler callbacks with `usbh_on*Handle`: `usbh_onNoteOn()`
 - Prefix USB Device handler callbacks with `usbd_on*`: `usbd_onNoteOn()`
-- Prefix Serial handler callbacks with `localSerialOn*`: `localSerialOnNoteOn()`
+- Prefix Serial handler callbacks with `serial_on*`: `serial_onNoteOn()`
 
 **Variables:**
 - Use `camelCase` for local and global variables: `isConnectedToComputer`, `midi_dev_addr`
@@ -150,7 +150,7 @@ bool isMidiFiltered(MidiInterfaceType interface, MidiMsgType msgType) {
 - MIDI message handlers use early return for filtering:
 
 ```cpp
-void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
+void usbh_onNoteOn(byte channel, byte note, byte velocity) {
     if (!isChannelEnabled(channel)) return;          // Channel filter
     if (isMidiFiltered(MIDI_INTERFACE_USB_HOST, MIDI_MSG_NOTE)) return; // Type filter
     // ... process message

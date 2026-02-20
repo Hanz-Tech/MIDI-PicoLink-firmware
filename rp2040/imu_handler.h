@@ -2,6 +2,7 @@
 #define IMU_HANDLER_H
 
 #include <Arduino.h>
+#include "pin_config.h"
 #include "FastIMU.h"
 #include <ArduinoJson.h>
 
@@ -73,8 +74,6 @@ bool updateIMUConfigFromJson(const JsonDocument& doc);
 #define DEFAULT_RANGE 45.0f
 
 // I2C pin configuration
-#define IMU_I2C_SDA_PIN 26
-#define IMU_I2C_SCL_PIN 27
 #define IMU_ADDRESS 0x68  // MPU6050/LSM6DS3 address (alt: 0x6B for MPU6050, 0x6A/0x6B for LSM6DS3)
 
 // Update rate for MIDI CC messages (to avoid flooding)

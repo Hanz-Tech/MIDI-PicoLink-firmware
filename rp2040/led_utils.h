@@ -2,10 +2,7 @@
 #define LED_UTILS_H
 
 #include <Arduino.h>
-
-// LED pin definitions
-#define LED_IN_PIN 29
-#define LED_OUT_PIN 19
+#include "pin_config.h"
 
 // Function declarations for LED handling
 void initLEDs();

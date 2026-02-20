@@ -174,7 +174,7 @@ started: "Occurs with latest commit; timing ~couple of minutes"
 
 - timestamp: 2026-02-17T10:25:00Z
   checked: "tud_midi_n_stream_write while loop behavior under FIFO pressure"
-  found: "The while loop (line 248) exits when tu_fifo_remaining(&midi->tx_ff) < 4. tx_ff is 64 bytes. If write_flush on line 355 fails to claim the endpoint (busy), no data drains from the FIFO. With the TE OP-XY sending MIDI at any rate, the FIFO fills in 16 packets. Once full, tud_midi_n_stream_write returns 0 for subsequent calls (while loop doesn't execute). This is NOT a blocking stall — the function returns. BUT: usb_host_wrapper.cpp callbacks call processMidiPacket() which calls usbh_onNoteOnHandle → routeMidiMessage → forwardToInterface → USB_D.sendNoteOn. The MIDI Arduino library's sendNoteOn calls tud_midi_n_stream_write. If it returns 0, data is dropped but Core1 continues."
+  found: "The while loop (line 248) exits when tu_fifo_remaining(&midi->tx_ff) < 4. tx_ff is 64 bytes. If write_flush on line 355 fails to claim the endpoint (busy), no data drains from the FIFO. With the TE OP-XY sending MIDI at any rate, the FIFO fills in 16 packets. Once full, tud_midi_n_stream_write returns 0 for subsequent calls (while loop doesn't execute). This is NOT a blocking stall — the function returns. BUT: usb_host_wrapper.cpp callbacks call processMidiPacket() which calls usbh_onNoteOn → routeMidiMessage → forwardToInterface → USB_D.sendNoteOn. The MIDI Arduino library's sendNoteOn calls tud_midi_n_stream_write. If it returns 0, data is dropped but Core1 continues."
   implication: "The MIDI device write path alone should NOT cause Core1 to stall — it should just drop data when full. The stall must come from somewhere else."
 
 - timestamp: 2026-02-17T10:30:00Z
