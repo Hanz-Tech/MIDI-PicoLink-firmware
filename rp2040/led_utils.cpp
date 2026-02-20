@@ -37,6 +37,7 @@ void handleLEDs() {
     outLedActive = false;
   }
 
+  // Blink scheduler runs alongside activity timers (50ms behavior unchanged).
   if (blinkActive && millis() >= blinkNextStepAt) {
     blinkLedOn = !blinkLedOn;
     digitalWrite(LED_IN_PIN, blinkLedOn ? HIGH : LOW);
