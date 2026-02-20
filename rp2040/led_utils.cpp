@@ -6,6 +6,13 @@ static bool inLedActive = false;
 static uint32_t outLedStartMs = 0;
 static bool outLedActive = false;
 
+// Blink scheduler state
+static bool blinkActive = false;
+static bool blinkLedOn = false;
+static uint8_t blinkRemainingTransitions = 0;
+static uint16_t blinkIntervalMs = 0;
+static uint32_t blinkNextStepAt = 0;
+
 // Initialize LED pins
 void initLEDs() {
   pinMode(LED_IN_PIN, OUTPUT);
@@ -29,6 +36,21 @@ void handleLEDs() {
     digitalWrite(LED_OUT_PIN, LOW);
     outLedActive = false;
   }
+
+  if (blinkActive && millis() >= blinkNextStepAt) {
+    blinkLedOn = !blinkLedOn;
+    digitalWrite(LED_IN_PIN, blinkLedOn ? HIGH : LOW);
+    digitalWrite(LED_OUT_PIN, blinkLedOn ? HIGH : LOW);
+    blinkNextStepAt = millis() + blinkIntervalMs;
+    if (!blinkLedOn && blinkRemainingTransitions > 0) {
+      blinkRemainingTransitions--;
+      if (blinkRemainingTransitions == 0) {
+        blinkActive = false;
+        digitalWrite(LED_IN_PIN, LOW);
+        digitalWrite(LED_OUT_PIN, LOW);
+      }
+    }
+  }
 }
 
 // Function to trigger the serial MIDI LED for 50ms
@@ -49,12 +71,17 @@ void triggerUsbLED() {
 
 // Blink both LEDs N times with ms delay (synchronous/blocking)
 void blinkBothLEDs(int times, int ms) {
-  for (int i = 0; i < times; i++) {
-    digitalWrite(LED_IN_PIN, HIGH);
-    digitalWrite(LED_OUT_PIN, HIGH);
-    delay(ms);
+  if (times <= 0 || ms <= 0) {
+    blinkActive = false;
+    blinkRemainingTransitions = 0;
     digitalWrite(LED_IN_PIN, LOW);
     digitalWrite(LED_OUT_PIN, LOW);
-    delay(ms);
+    return;
   }
+
+  blinkActive = true;
+  blinkLedOn = false;
+  blinkRemainingTransitions = static_cast<uint8_t>(times * 2);
+  blinkIntervalMs = static_cast<uint16_t>(ms);
+  blinkNextStepAt = millis();
 }
