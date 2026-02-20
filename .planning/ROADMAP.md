@@ -57,11 +57,11 @@ Plans:
   1. LED blink patterns (USB host connect/disconnect, activity indicators) use a `millis()`-based state machine — no `delay()` calls in the MIDI routing path
   2. IMU calibration runs as a non-blocking state machine (or is offloaded to Core 1) so MIDI routing on Core 0 continues uninterrupted during the ~4-second calibration
   3. MIDI messages arriving during LED animations or IMU calibration are routed without added latency (no blocking waits in the message path)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Replace blocking LED blink with non-blocking scheduler (PERF-01)
+- [ ] 03-02-PLAN.md — Convert IMU calibration to non-blocking state machine (PERF-02)
 
 ### Phase 4: Debug Infrastructure
 **Goal**: Debug output flows through a dedicated serial channel with compile-time on/off control, eliminating interference with the Web Serial configuration protocol
@@ -86,5 +86,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Generic MIDI Router | 0/2 | Planned | - |
 | 2. Module Structure | 2/2 | Complete | 2026-02-20 |
-| 3. Non-Blocking Patterns | 0/0 | Not started | - |
+| 3. Non-Blocking Patterns | 0/2 | Not started | - |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
