@@ -115,37 +115,37 @@ void processMidiPacket(uint8_t packet[4]) {
     switch (msgType) {
         case 0x80: // Note Off
             if (cin == 0x8) {
-                usbh_onNoteOffHandle(channel, msg[1], msg[2]);
+                usbh_onNoteOff(channel, msg[1], msg[2]);
             }
             break;
             
         case 0x90: // Note On
             if (cin == 0x9) {
-                usbh_onNoteOnHandle(channel, msg[1], msg[2]);
+                usbh_onNoteOn(channel, msg[1], msg[2]);
             }
             break;
             
         case 0xA0: // Polyphonic Aftertouch
             if (cin == 0xA) {
-                usbh_onPolyphonicAftertouchHandle(channel, msg[1], msg[2]);
+            usbh_onPolyAftertouch(channel, msg[1], msg[2]);
             }
             break;
             
         case 0xB0: // Control Change
             if (cin == 0xB) {
-                usbh_onControlChangeHandle(channel, msg[1], msg[2]);
+                usbh_onControlChange(channel, msg[1], msg[2]);
             }
             break;
             
         case 0xC0: // Program Change
             if (cin == 0xC) {
-                usbh_onProgramChangeHandle(channel, msg[1]);
+                usbh_onProgramChange(channel, msg[1]);
             }
             break;
             
         case 0xD0: // Channel Aftertouch
             if (cin == 0xD) {
-                usbh_onAftertouchHandle(channel, msg[1]);
+            usbh_onChannelAftertouch(channel, msg[1]);
             }
             break;
             
@@ -153,7 +153,7 @@ void processMidiPacket(uint8_t packet[4]) {
             if (cin == 0xE) {
                 int bend = (msg[2] << 7) | msg[1];
                 bend -= 8192; // Convert to signed value (-8192 to +8191)
-                usbh_onPitchBendHandle(channel, bend);
+                usbh_onPitchBend(channel, bend);
             }
             break;
             
@@ -161,22 +161,22 @@ void processMidiPacket(uint8_t packet[4]) {
             switch (status) {
                 case 0xF8: // MIDI Clock
                     if (cin == 0xF) {
-                        usbh_onMidiClockHandle();
+                        usbh_onMidiClock();
                     }
                     break;
                 case 0xFA: // Start
                     if (cin == 0xF) {
-                        usbh_onMidiStartHandle();
+                        usbh_onMidiStart();
                     }
                     break;
                 case 0xFB: // Continue
                     if (cin == 0xF) {
-                        usbh_onMidiContinueHandle();
+                        usbh_onMidiContinue();
                     }
                     break;
                 case 0xFC: // Stop
                     if (cin == 0xF) {
-                        usbh_onMidiStopHandle();
+                        usbh_onMidiStop();
                     }
                     break;
                 case 0xF0: // SysEx start - handle multi-packet SysEx
@@ -196,7 +196,7 @@ void processMidiPacket(uint8_t packet[4]) {
                             sysex_data[i] = msg[i];
                         }
                         
-                        usbh_onSysExHandle(sysex_data, sysex_len);
+                        usbh_onSysEx(sysex_data, sysex_len);
                     }
                     break;
             }

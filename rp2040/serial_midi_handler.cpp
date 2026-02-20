@@ -22,22 +22,22 @@ extern volatile bool midi_host_mounted; // Set by USB Host connection callback
 
 // --- Local Handler Forward Declarations ---
 // These handlers are called by the MIDI library when messages arrive *on* Serial MIDI
-void localSerialOnNoteOn(byte channel, byte note, byte velocity);
-void localSerialOnNoteOff(byte channel, byte note, byte velocity);
-void localSerialOnControlChange(byte channel, byte controller, byte value);
-void localSerialOnProgramChange(byte channel, byte program);
-void localSerialOnAftertouch(byte channel, byte pressure); // Channel Aftertouch
+void serial_onNoteOn(byte channel, byte note, byte velocity);
+void serial_onNoteOff(byte channel, byte note, byte velocity);
+void serial_onControlChange(byte channel, byte controller, byte value);
+void serial_onProgramChange(byte channel, byte program);
+void serial_onChannelAftertouch(byte channel, byte pressure); // Channel Aftertouch
 // Note: The MIDI library doesn't directly support Polyphonic Aftertouch *input* handling
 // via a dedicated setHandle function like it does for output.
 // If you need to handle incoming Poly AT on Serial, you might need custom parsing
 // or check if the library version you use has added it.
 // We'll omit a specific handler for incoming Poly AT from Serial for now.
-void localSerialOnPitchBend(byte channel, int bend);
-void localSerialOnSysEx(byte * array, unsigned size);
-void localSerialOnClock();
-void localSerialOnStart();
-void localSerialOnContinue();
-void localSerialOnStop();
+void serial_onPitchBend(byte channel, int bend);
+void serial_onSysEx(byte * array, unsigned size);
+void serial_onClock();
+void serial_onStart();
+void serial_onContinue();
+void serial_onStop();
 
 // --- Public Functions (declared in .h) ---
 
@@ -48,17 +48,17 @@ void setupSerialMidi() {
 
     // Initialize Serial MIDI
     SERIAL_M.begin(MIDI_CHANNEL_OMNI);
-    SERIAL_M.setHandleNoteOn(localSerialOnNoteOn);
-    SERIAL_M.setHandleNoteOff(localSerialOnNoteOff);
-    SERIAL_M.setHandleControlChange(localSerialOnControlChange);
-    SERIAL_M.setHandleProgramChange(localSerialOnProgramChange);
-    SERIAL_M.setHandleAfterTouchChannel(localSerialOnAftertouch); // Channel Aftertouch
-    SERIAL_M.setHandlePitchBend(localSerialOnPitchBend);
-    SERIAL_M.setHandleSystemExclusive(localSerialOnSysEx);
-    SERIAL_M.setHandleClock(localSerialOnClock);
-    SERIAL_M.setHandleStart(localSerialOnStart);
-    SERIAL_M.setHandleContinue(localSerialOnContinue);
-    SERIAL_M.setHandleStop(localSerialOnStop);
+    SERIAL_M.setHandleNoteOn(serial_onNoteOn);
+    SERIAL_M.setHandleNoteOff(serial_onNoteOff);
+    SERIAL_M.setHandleControlChange(serial_onControlChange);
+    SERIAL_M.setHandleProgramChange(serial_onProgramChange);
+    SERIAL_M.setHandleAfterTouchChannel(serial_onChannelAftertouch); // Channel Aftertouch
+    SERIAL_M.setHandlePitchBend(serial_onPitchBend);
+    SERIAL_M.setHandleSystemExclusive(serial_onSysEx);
+    SERIAL_M.setHandleClock(serial_onClock);
+    SERIAL_M.setHandleStart(serial_onStart);
+    SERIAL_M.setHandleContinue(serial_onContinue);
+    SERIAL_M.setHandleStop(serial_onStop);
     SERIAL_M.turnThruOff();
 
     dualPrintf("Serial MIDI Module: Initialized using pins: RX=%d, TX=%d\n", SERIAL_MIDI_RX_PIN, SERIAL_MIDI_TX_PIN);
@@ -111,7 +111,7 @@ void sendSerialMidiRealTime(midi::MidiType type) {
 // --- Local Handler Implementations ---
 // These handle messages *received from* Serial MIDI and forward them
 
-void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
+void serial_onNoteOn(byte channel, byte note, byte velocity) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_NOTE;
     msg.subType = (velocity == 0) ? 1 : 0;
@@ -121,7 +121,7 @@ void localSerialOnNoteOn(byte channel, byte note, byte velocity) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
+void serial_onNoteOff(byte channel, byte note, byte velocity) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_NOTE;
     msg.subType = 1;
@@ -131,7 +131,7 @@ void localSerialOnNoteOff(byte channel, byte note, byte velocity) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnControlChange(byte channel, byte controller, byte value) {
+void serial_onControlChange(byte channel, byte controller, byte value) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_CONTROL_CHANGE;
     msg.channel = channel;
@@ -140,7 +140,7 @@ void localSerialOnControlChange(byte channel, byte controller, byte value) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnProgramChange(byte channel, byte program) {
+void serial_onProgramChange(byte channel, byte program) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_PROGRAM_CHANGE;
     msg.channel = channel;
@@ -148,7 +148,7 @@ void localSerialOnProgramChange(byte channel, byte program) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnAftertouch(byte channel, byte pressure) {
+void serial_onChannelAftertouch(byte channel, byte pressure) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_CHANNEL_AFTERTOUCH;
     msg.channel = channel;
@@ -156,7 +156,7 @@ void localSerialOnAftertouch(byte channel, byte pressure) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnPitchBend(byte channel, int bend) {
+void serial_onPitchBend(byte channel, int bend) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_PITCH_BEND;
     msg.channel = channel;
@@ -164,7 +164,7 @@ void localSerialOnPitchBend(byte channel, int bend) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnSysEx(byte * array, unsigned size) {
+void serial_onSysEx(byte * array, unsigned size) {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_SYSEX;
     msg.channel = 0;
@@ -173,7 +173,7 @@ void localSerialOnSysEx(byte * array, unsigned size) {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnClock() {
+void serial_onClock() {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_REALTIME;
     msg.channel = 0;
@@ -182,7 +182,7 @@ void localSerialOnClock() {
 }
 
 
-void localSerialOnStart() {
+void serial_onStart() {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_REALTIME;
     msg.channel = 0;
@@ -190,7 +190,7 @@ void localSerialOnStart() {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnContinue() {
+void serial_onContinue() {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_REALTIME;
     msg.channel = 0;
@@ -198,7 +198,7 @@ void localSerialOnContinue() {
     routeMidiMessage(MIDI_INTERFACE_SERIAL, msg);
 }
 
-void localSerialOnStop() {
+void serial_onStop() {
     MidiMessage msg = {};
     msg.type = MIDI_MSG_REALTIME;
     msg.channel = 0;

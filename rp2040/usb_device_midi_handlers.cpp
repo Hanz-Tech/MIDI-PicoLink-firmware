@@ -48,7 +48,7 @@ static void usbd_onPolyAftertouch(byte channel, byte note, byte pressure) {
   routeMidiMessage(MIDI_INTERFACE_USB_DEVICE, msg);
 }
 
-static void usbd_onAftertouch(byte channel, byte pressure) {
+static void usbd_onChannelAftertouch(byte channel, byte pressure) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_CHANNEL_AFTERTOUCH;
   msg.channel = channel;
@@ -111,7 +111,7 @@ void setupUsbDeviceHandlers() {
   USB_D.setHandleControlChange(usbd_onControlChange);
   USB_D.setHandleProgramChange(usbd_onProgramChange);
   USB_D.setHandleAfterTouchPoly(usbd_onPolyAftertouch);
-  USB_D.setHandleAfterTouchChannel(usbd_onAftertouch);
+  USB_D.setHandleAfterTouchChannel(usbd_onChannelAftertouch);
   USB_D.setHandlePitchBend(usbd_onPitchBend);
   USB_D.setHandleSystemExclusive(usbd_onSysEx);
   USB_D.setHandleClock(usbd_onClock);

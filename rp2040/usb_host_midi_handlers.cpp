@@ -4,7 +4,7 @@
 
 USING_NAMESPACE_MIDI
 
-void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
+void usbh_onNoteOff(byte channel, byte note, byte velocity) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_NOTE;
   msg.subType = 1;
@@ -14,7 +14,7 @@ void usbh_onNoteOffHandle(byte channel, byte note, byte velocity) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
+void usbh_onNoteOn(byte channel, byte note, byte velocity) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_NOTE;
   msg.subType = 0;
@@ -24,7 +24,7 @@ void usbh_onNoteOnHandle(byte channel, byte note, byte velocity) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
+void usbh_onPolyAftertouch(byte channel, byte note, byte amount) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_POLY_AFTERTOUCH;
   msg.channel = channel;
@@ -33,7 +33,7 @@ void usbh_onPolyphonicAftertouchHandle(byte channel, byte note, byte amount) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
+void usbh_onControlChange(byte channel, byte controller, byte value) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_CONTROL_CHANGE;
   msg.channel = channel;
@@ -42,7 +42,7 @@ void usbh_onControlChangeHandle(byte channel, byte controller, byte value) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onProgramChangeHandle(byte channel, byte program) {
+void usbh_onProgramChange(byte channel, byte program) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_PROGRAM_CHANGE;
   msg.channel = channel;
@@ -50,7 +50,7 @@ void usbh_onProgramChangeHandle(byte channel, byte program) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onAftertouchHandle(byte channel, byte value) {
+void usbh_onChannelAftertouch(byte channel, byte value) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_CHANNEL_AFTERTOUCH;
   msg.channel = channel;
@@ -58,7 +58,7 @@ void usbh_onAftertouchHandle(byte channel, byte value) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onPitchBendHandle(byte channel, int value) {
+void usbh_onPitchBend(byte channel, int value) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_PITCH_BEND;
   msg.channel = channel;
@@ -66,7 +66,7 @@ void usbh_onPitchBendHandle(byte channel, int value) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onSysExHandle(byte *array, unsigned size) {
+void usbh_onSysEx(byte *array, unsigned size) {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_SYSEX;
   msg.channel = 0;
@@ -75,7 +75,7 @@ void usbh_onSysExHandle(byte *array, unsigned size) {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onMidiClockHandle() {
+void usbh_onMidiClock() {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_REALTIME;
   msg.channel = 0;
@@ -83,7 +83,7 @@ void usbh_onMidiClockHandle() {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onMidiStartHandle() {
+void usbh_onMidiStart() {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_REALTIME;
   msg.channel = 0;
@@ -91,7 +91,7 @@ void usbh_onMidiStartHandle() {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onMidiContinueHandle() {
+void usbh_onMidiContinue() {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_REALTIME;
   msg.channel = 0;
@@ -99,7 +99,7 @@ void usbh_onMidiContinueHandle() {
   routeMidiMessage(MIDI_INTERFACE_USB_HOST, msg);
 }
 
-void usbh_onMidiStopHandle() {
+void usbh_onMidiStop() {
   MidiMessage msg = {};
   msg.type = MIDI_MSG_REALTIME;
   msg.channel = 0;
@@ -108,51 +108,51 @@ void usbh_onMidiStopHandle() {
 }
 
 void onNoteOff(Channel channel, byte note, byte velocity) {
-  usbh_onNoteOffHandle(channel, note, velocity);
+  usbh_onNoteOff(channel, note, velocity);
 }
 
 void onNoteOn(Channel channel, byte note, byte velocity) {
-  usbh_onNoteOnHandle(channel, note, velocity);
+  usbh_onNoteOn(channel, note, velocity);
 }
 
 void onPolyphonicAftertouch(Channel channel, byte note, byte pressure) {
-  usbh_onPolyphonicAftertouchHandle(channel, note, pressure);
+  usbh_onPolyAftertouch(channel, note, pressure);
 }
 
 void onControlChange(Channel channel, byte control, byte value) {
-  usbh_onControlChangeHandle(channel, control, value);
+  usbh_onControlChange(channel, control, value);
 }
 
 void onProgramChange(Channel channel, byte program) {
-  usbh_onProgramChangeHandle(channel, program);
+  usbh_onProgramChange(channel, program);
 }
 
 void onAftertouch(Channel channel, byte pressure) {
-  usbh_onAftertouchHandle(channel, pressure);
+  usbh_onChannelAftertouch(channel, pressure);
 }
 
 void onPitchBend(Channel channel, int bend) {
-  usbh_onPitchBendHandle(channel, bend);
+  usbh_onPitchBend(channel, bend);
 }
 
 void onSysEx(byte *array, unsigned size) {
-  usbh_onSysExHandle(array, size);
+  usbh_onSysEx(array, size);
 }
 
 void onMidiClock() {
-  usbh_onMidiClockHandle();
+  usbh_onMidiClock();
 }
 
 void onMidiStart() {
-  usbh_onMidiStartHandle();
+  usbh_onMidiStart();
 }
 
 void onMidiContinue() {
-  usbh_onMidiContinueHandle();
+  usbh_onMidiContinue();
 }
 
 void onMidiStop() {
-  usbh_onMidiStopHandle();
+  usbh_onMidiStop();
 }
 
 void setupUsbHostHandlers() {
