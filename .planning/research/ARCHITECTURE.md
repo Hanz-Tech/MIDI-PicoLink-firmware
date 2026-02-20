@@ -461,7 +461,7 @@ void handleLEDs() {
 
 ### Anti-Pattern 1: Per-Source-Per-Type Handler Functions
 
-**What people do:** Write a separate `usbh_onNoteOnHandle()`, `usbd_onNoteOn()`, `localSerialOnNoteOn()` for every combination of source interface and message type. This is the current codebase pattern.
+**What people do:** Write a separate `usbh_onNoteOn()`, `usbd_onNoteOn()`, `serial_onNoteOn()` for every combination of source interface and message type. This is the current codebase pattern.
 **Why it's wrong:** 33+ functions that all do the same thing: check channel → check source filter → log → forward to other interfaces → trigger LED. Any change requires updating all 33 functions identically. Bugs from inconsistency (e.g., missing channel filter on `usbd_onControlChange`) are inevitable.
 **Do this instead:** One `routeMidiMessage(MidiMessage)` function. Input callbacks construct a `MidiMessage` struct and call the router. Each source's callback becomes 2-5 lines instead of 15-25.
 

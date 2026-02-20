@@ -112,7 +112,7 @@ MIDI-PicoLink-firmware/
 
 **Functions (firmware):**
 - `camelCase()`: Most functions use camelCase (e.g., `setupMidiFilters()`, `isMidiFiltered()`, `sendSerialMidiNoteOn()`)
-- Prefixed by module: `sendSerialMidi*()`, `usbh_on*Handle()`, `usbd_on*()`, `localSerialOn*()`
+- Prefixed by module: `sendSerialMidi*()`, `usbh_on*Handle()`, `usbd_on*()`, `serial_on*()`
 - Setup/loop pattern: each module has `setup*()` and `loop*()` (e.g., `setupSerialMidi()` / `loopSerialMidi()`, `setupIMU()` / `loopIMU()`)
 
 **Functions (web configurator):**

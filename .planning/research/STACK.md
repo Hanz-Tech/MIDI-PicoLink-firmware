@@ -311,7 +311,7 @@ The `routeMidiMessage()` function:
 
 Each handler callback becomes a single-line call:
 ```cpp
-void usbh_onNoteOnHandle(byte ch, byte note, byte vel) {
+void usbh_onNoteOn(byte ch, byte note, byte vel) {
     routeMidiMessage({MidiPort::USB_HOST, MIDI_MSG_NOTE, ch, note, vel});
 }
 ```

@@ -40,7 +40,7 @@ skipped: 0
   root_cause: "Velocity-0 NoteOn from Serial MIDI is treated as NoteOn because subType is hardcoded to 0 and router only uses subType; velocity-0 NoteOn should be NoteOff"
   artifacts:
     - path: "rp2040/serial_midi_handler.cpp"
-      issue: "localSerialOnNoteOn sets subType=0 regardless of velocity"
+      issue: "serial_onNoteOn sets subType=0 regardless of velocity"
     - path: "rp2040/midi_router.cpp"
       issue: "NOTE routing only uses subType; no velocity-0 normalization"
   missing:
