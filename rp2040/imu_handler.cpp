@@ -30,6 +30,21 @@ static float gyroXoffset = 0.0, gyroYoffset = 0.0, gyroZoffset = 0.0;
 static float accelXoffset = 0.0, accelYoffset = 0.0, accelZoffset = 0.0;
 static bool calibrated = false;
 
+struct IMUCalibrationState {
+    bool active;
+    uint32_t startTime;
+    uint32_t nextSampleAt;
+    uint16_t sampleCount;
+    float gyroXsum;
+    float gyroYsum;
+    float gyroZsum;
+    float accelXsum;
+    float accelYsum;
+    float accelZsum;
+};
+
+static IMUCalibrationState imuCalibration = { false, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
 // Previous MIDI values to detect changes
 static uint8_t lastRollValue = 255;
 static uint8_t lastPitchValue = 255;
@@ -77,6 +92,12 @@ bool setupIMU() {
 }
 
 void loopIMU() {
+    updateIMUCalibration();
+
+    if (isIMUCalibrationActive()) {
+        return;
+    }
+
     // Check if any axis is enabled - no need for global IMU enable anymore
     if (!imuConfig.rollEnabled && !imuConfig.pitchEnabled && !imuConfig.yawEnabled) {
         return;
@@ -184,44 +205,85 @@ bool getIMUAngles(float &roll, float &pitch, float &yaw) {
 }
 
 void calibrateIMU() {
+    startIMUCalibration();
+}
+
+void startIMUCalibration() {
+    if (imuCalibration.active) {
+        return;
+    }
+
     dualPrintln("Calibrating IMU... Keep the device flat and still!");
     dualPrintln("Starting calibration in 3 seconds...");
-    delay(3000);
-    
-    const int calibrationSamples = 100;
-    float gyroXsum = 0, gyroYsum = 0, gyroZsum = 0;
-    float accelXsum = 0, accelYsum = 0, accelZsum = 0;
-    
-    for (int i = 0; i < calibrationSamples; i++) {
-        AccelData accelData;
-        GyroData gyroData;
-        
-        IMU.update();
-        IMU.getAccel(&accelData);
-        IMU.getGyro(&gyroData);
-        
-        gyroXsum += gyroData.gyroX;
-        gyroYsum += gyroData.gyroY;
-        gyroZsum += gyroData.gyroZ;
-        
-        accelXsum += accelData.accelX;
-        accelYsum += accelData.accelY;
-        accelZsum += accelData.accelZ - 1.0;  // Subtract 1g for Z axis
-        
-        delay(10);
+
+    imuCalibration.active = true;
+    imuCalibration.startTime = millis();
+    imuCalibration.nextSampleAt = 0;
+    imuCalibration.sampleCount = 0;
+    imuCalibration.gyroXsum = 0.0f;
+    imuCalibration.gyroYsum = 0.0f;
+    imuCalibration.gyroZsum = 0.0f;
+    imuCalibration.accelXsum = 0.0f;
+    imuCalibration.accelYsum = 0.0f;
+    imuCalibration.accelZsum = 0.0f;
+    calibrated = false;
+}
+
+void updateIMUCalibration() {
+    if (!imuCalibration.active) {
+        return;
     }
-    
-    // Calculate averages for offset
-    gyroXoffset = gyroXsum / calibrationSamples;
-    gyroYoffset = gyroYsum / calibrationSamples;
-    gyroZoffset = gyroZsum / calibrationSamples;
-    
-    accelXoffset = accelXsum / calibrationSamples;
-    accelYoffset = accelYsum / calibrationSamples;
-    accelZoffset = accelZsum / calibrationSamples;
-    
+
+    const uint16_t calibrationSamples = 100;
+    const uint32_t settleDelayMs = 3000;
+    const uint32_t sampleIntervalMs = 10;
+
+    uint32_t now = millis();
+    if (now - imuCalibration.startTime < settleDelayMs) {
+        return;
+    }
+
+    if (imuCalibration.nextSampleAt != 0 && now < imuCalibration.nextSampleAt) {
+        return;
+    }
+
+    AccelData accelData;
+    GyroData gyroData;
+
+    IMU.update();
+    IMU.getAccel(&accelData);
+    IMU.getGyro(&gyroData);
+
+    imuCalibration.gyroXsum += gyroData.gyroX;
+    imuCalibration.gyroYsum += gyroData.gyroY;
+    imuCalibration.gyroZsum += gyroData.gyroZ;
+
+    imuCalibration.accelXsum += accelData.accelX;
+    imuCalibration.accelYsum += accelData.accelY;
+    imuCalibration.accelZsum += accelData.accelZ - 1.0f;
+
+    imuCalibration.sampleCount++;
+    imuCalibration.nextSampleAt = now + sampleIntervalMs;
+
+    if (imuCalibration.sampleCount < calibrationSamples) {
+        return;
+    }
+
+    gyroXoffset = imuCalibration.gyroXsum / calibrationSamples;
+    gyroYoffset = imuCalibration.gyroYsum / calibrationSamples;
+    gyroZoffset = imuCalibration.gyroZsum / calibrationSamples;
+
+    accelXoffset = imuCalibration.accelXsum / calibrationSamples;
+    accelYoffset = imuCalibration.accelYsum / calibrationSamples;
+    accelZoffset = imuCalibration.accelZsum / calibrationSamples;
+
     calibrated = true;
+    imuCalibration.active = false;
     dualPrintln("IMU calibration complete!");
+}
+
+bool isIMUCalibrationActive() {
+    return imuCalibration.active;
 }
 
 uint8_t angleToMidiCC(float angle, float range, uint8_t defaultValue) {
