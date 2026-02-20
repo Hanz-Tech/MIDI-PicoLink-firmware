@@ -10,8 +10,8 @@ Requirements for initial milestone. Each maps to roadmap phases.
 ### Code Architecture
 
 - [ ] **ARCH-01**: All MIDI message routing consolidated into a single generic `routeMidiMessage()` function that handles filtering, forwarding, and LED triggering for any source interface and message type
-- [ ] **ARCH-02**: USB Host and USB Device MIDI handlers extracted from rp2040.ino into dedicated modules (or consolidated into a single midi_router module)
-- [ ] **ARCH-03**: All GPIO pin assignments centralized in a single `pin_config.h` header file
+- [x] **ARCH-02**: USB Host and USB Device MIDI handlers extracted from rp2040.ino into dedicated modules (or consolidated into a single midi_router module)
+- [x] **ARCH-03**: All GPIO pin assignments centralized in a single `pin_config.h` header file
 - [ ] **ARCH-04**: Compile-time debug logging via `#ifdef DEBUG` macros, outputting to Serial2 only (not USB CDC Serial)
 - [ ] **ARCH-05**: Debug serial output separated from Web Serial configuration protocol so they cannot interfere with each other
 - [ ] **ARCH-06**: All cross-core shared variables (`midi_host_mounted`, `midi_dev_addr`, `isConnectedToComputer`) use `volatile` qualifier and appropriate synchronization primitives
@@ -88,8 +88,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | ARCH-01 | Phase 1: Generic MIDI Router | Pending |
 | ARCH-06 | Phase 1: Generic MIDI Router | Pending |
-| ARCH-02 | Phase 2: Module Structure | Pending |
-| ARCH-03 | Phase 2: Module Structure | Pending |
+| ARCH-02 | Phase 2: Module Structure | Complete |
+| ARCH-03 | Phase 2: Module Structure | Complete |
 | PERF-01 | Phase 3: Non-Blocking Patterns | Pending |
 | PERF-02 | Phase 3: Non-Blocking Patterns | Pending |
 | ARCH-04 | Phase 4: Debug Infrastructure | Pending |
