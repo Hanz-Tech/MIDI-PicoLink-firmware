@@ -1,4 +1,5 @@
 #include "imu_handler.h"
+#include "midi_router.h"
 #include "serial_midi_handler.h"
 #include "usb_host_wrapper.h"
 #include "midi_instances.h"
@@ -303,20 +304,29 @@ uint8_t angleToMidiCC(float angle, float range, uint8_t defaultValue) {
 }
 
 void sendIMUMidiCC(uint8_t channel, uint8_t cc, uint8_t value, bool toSerial, bool toUSBDevice, bool toUSBHost) {
-    // Send to Serial MIDI
+    MidiMessage msg;
+    msg.type = MIDI_MSG_CONTROL_CHANGE;
+    msg.subType = 0;
+    msg.channel = channel;
+    msg.data1 = cc;
+    msg.data2 = value;
+    msg.pitchBend = 0;
+    msg.sysexData = nullptr;
+    msg.sysexSize = 0;
+    msg.rtType = midi::InvalidType;
+
+    byte destMask = 0;
     if (toSerial) {
-        sendSerialMidiControlChange(channel, cc, value);
+        destMask |= ROUTE_TO_SERIAL;
     }
-    
-    // Send to USB Device MIDI
     if (toUSBDevice) {
-        USB_D.sendControlChange(cc, value, channel);
+        destMask |= ROUTE_TO_USB_DEVICE;
     }
-    
-    // Send to USB Host MIDI  
-    if (toUSBHost && midi_host_mounted) {
-        sendControlChange(channel, cc, value);
+    if (toUSBHost) {
+        destMask |= ROUTE_TO_USB_HOST;
     }
+
+    routeMidiMessage(MIDI_SOURCE_INTERNAL, msg, destMask);
 }
 
 void setIMUConfig(const IMUConfig &config) {
