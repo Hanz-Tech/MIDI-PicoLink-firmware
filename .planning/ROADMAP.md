@@ -28,11 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No duplicated routing logic exists — each MIDI handler calls `routeMidiMessage()` with message type, source, and data
   3. Cross-core shared variables (`midi_host_mounted`, `midi_dev_addr`, `isConnectedToComputer`) are marked `volatile` and access is synchronized with appropriate primitives (spinlocks or mutexes)
   4. MIDI messages route correctly between all three interfaces with the same filtering behavior as before the refactor
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
 - [ ] 01-01-PLAN.md — Create midi_router module with routeMidiMessage() + cross-core safety (ARCH-06)
 - [ ] 01-02-PLAN.md — Rewire all 33+ handlers to use routeMidiMessage() + verify compilation (ARCH-01)
+- [ ] 01-04-PLAN.md — Route IMU-generated MIDI CCs through routeMidiMessage() (gap closure)
 
 ### Phase 2: Module Structure
 **Goal**: The monolithic rp2040.ino is split into focused modules with all hardware pin assignments in one place, creating clear homes for the router refactor and future features
