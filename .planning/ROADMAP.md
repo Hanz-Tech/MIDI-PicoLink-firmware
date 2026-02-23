@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Generic MIDI Router** - Consolidate 33+ duplicated handlers into single routing function with cross-core safety
 - [ ] **Phase 2: Module Structure** - Split monolith into focused modules with centralized pin configuration
-- [ ] **Phase 3: Non-Blocking Patterns** - Replace blocking delays with state machines for LEDs and IMU calibration
+- [x] **Phase 3: Non-Blocking Patterns** - Replace blocking delays with state machines for LEDs and IMU calibration
 - [ ] **Phase 4: Debug Infrastructure** - Separate debug logging from Web Serial and add compile-time control
 
 ## Phase Details
@@ -60,8 +60,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Replace blocking LED blink with non-blocking scheduler (PERF-01)
-- [ ] 03-02-PLAN.md — Convert IMU calibration to non-blocking state machine (PERF-02)
+- [x] 03-01-PLAN.md — Replace blocking LED blink with non-blocking scheduler (PERF-01)
+- [x] 03-02-PLAN.md — Convert IMU calibration to non-blocking state machine (PERF-02)
 
 ### Phase 4: Debug Infrastructure
 **Goal**: Debug output flows through a dedicated serial channel with compile-time on/off control, eliminating interference with the Web Serial configuration protocol
@@ -86,5 +86,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Generic MIDI Router | 0/2 | Planned | - |
 | 2. Module Structure | 2/2 | Complete | 2026-02-20 |
-| 3. Non-Blocking Patterns | 0/2 | Not started | - |
+| 3. Non-Blocking Patterns | 2/2 | Complete | 2026-02-23 |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
