@@ -18,8 +18,8 @@ Requirements for initial milestone. Each maps to roadmap phases.
 
 ### Performance
 
-- [ ] **PERF-01**: LED blink patterns use non-blocking state machine driven by `millis()` instead of blocking `delay()` calls
-- [ ] **PERF-02**: IMU calibration runs as a non-blocking state machine or on a separate core instead of blocking Core 0 for 4 seconds
+- [x] **PERF-01**: LED blink patterns use non-blocking state machine driven by `millis()` instead of blocking `delay()` calls
+- [x] **PERF-02**: IMU calibration runs as a non-blocking state machine or on a separate core instead of blocking Core 0 for 4 seconds
 
 ## v2 Requirements
 
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ARCH-06 | Phase 1: Generic MIDI Router | Pending |
 | ARCH-02 | Phase 2: Module Structure | Complete |
 | ARCH-03 | Phase 2: Module Structure | Complete |
-| PERF-01 | Phase 3: Non-Blocking Patterns | Pending |
-| PERF-02 | Phase 3: Non-Blocking Patterns | Pending |
+| PERF-01 | Phase 3: Non-Blocking Patterns | Complete |
+| PERF-02 | Phase 3: Non-Blocking Patterns | Complete |
 | ARCH-04 | Phase 4: Debug Infrastructure | Pending |
 | ARCH-05 | Phase 4: Debug Infrastructure | Pending |
 
@@ -102,4 +102,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-15*
-*Last updated: 2026-02-16 after roadmap revision*
+*Last updated: 2026-02-23 after Phase 3 completion*
