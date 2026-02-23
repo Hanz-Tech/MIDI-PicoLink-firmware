@@ -135,48 +135,78 @@ static void forwardToInterface(MidiInterfaceType dest, const MidiMessage &msg) {
     }
 }
 
-void routeMidiMessage(MidiSource source, const MidiMessage &msg) {
+void routeMidiMessage(MidiSource source, const MidiMessage &msg, byte destMask) {
     if (msg.type != MIDI_MSG_SYSEX && msg.type != MIDI_MSG_REALTIME) {
         if (msg.channel != 0 && !isChannelEnabled(msg.channel)) {
             return;
         }
     }
 
-    if (isMidiFiltered(source, msg.type)) {
-        return;
+    if (source != MIDI_SOURCE_INTERNAL) {
+        if (isMidiFiltered(static_cast<MidiInterfaceType>(source), msg.type)) {
+            return;
+        }
     }
 
-    const MidiInterfaceType interfaces[] = {
-        MIDI_INTERFACE_USB_HOST,
-        MIDI_INTERFACE_USB_DEVICE,
-        MIDI_INTERFACE_SERIAL
+    struct DestEntry {
+        MidiInterfaceType iface;
+        byte mask;
     };
 
-    for (MidiInterfaceType dest : interfaces) {
-        if (dest == source) {
+    const DestEntry interfaces[] = {
+        { MIDI_INTERFACE_USB_HOST, ROUTE_TO_USB_HOST },
+        { MIDI_INTERFACE_USB_DEVICE, ROUTE_TO_USB_DEVICE },
+        { MIDI_INTERFACE_SERIAL, ROUTE_TO_SERIAL }
+    };
+
+    for (const auto &destEntry : interfaces) {
+        if ((destMask & destEntry.mask) == 0) {
             continue;
         }
 
-        if (dest == MIDI_INTERFACE_USB_DEVICE && !isConnectedToComputer) {
+        if (destEntry.iface == MIDI_INTERFACE_USB_DEVICE && !isConnectedToComputer) {
             continue;
         }
 
-        if (dest == MIDI_INTERFACE_USB_HOST && !midi_host_mounted) {
+        if (destEntry.iface == MIDI_INTERFACE_USB_HOST && !midi_host_mounted) {
             continue;
         }
 
-        forwardToInterface(dest, msg);
+        forwardToInterface(destEntry.iface, msg);
     }
 
-    if (source == MIDI_INTERFACE_SERIAL) {
-        triggerSerialLED();
-    } else {
-        if (!(source == MIDI_INTERFACE_USB_DEVICE && msg.type == MIDI_MSG_REALTIME && msg.rtType == midi::Clock)) {
-            triggerUsbLED();
+    if (source != MIDI_SOURCE_INTERNAL) {
+        if (source == MIDI_SOURCE_SERIAL) {
+            triggerSerialLED();
+        } else {
+            if (!(source == MIDI_SOURCE_USB_DEVICE && msg.type == MIDI_MSG_REALTIME && msg.rtType == midi::Clock)) {
+                triggerUsbLED();
+            }
         }
     }
 
     if (msg.type != MIDI_MSG_REALTIME || msg.rtType != midi::Clock) {
         dualPrintf("Router: src=%d type=%d ch=%d d1=%d d2=%d\r\n", source, msg.type, msg.channel, msg.data1, msg.data2);
     }
+}
+
+void routeMidiMessage(MidiSource source, const MidiMessage &msg) {
+    byte destMask = ROUTE_TO_ALL;
+
+    switch (source) {
+        case MIDI_SOURCE_SERIAL:
+            destMask &= ~ROUTE_TO_SERIAL;
+            break;
+        case MIDI_SOURCE_USB_DEVICE:
+            destMask &= ~ROUTE_TO_USB_DEVICE;
+            break;
+        case MIDI_SOURCE_USB_HOST:
+            destMask &= ~ROUTE_TO_USB_HOST;
+            break;
+        case MIDI_SOURCE_INTERNAL:
+        default:
+            break;
+    }
+
+    routeMidiMessage(source, msg, destMask);
 }
