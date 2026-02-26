@@ -64,7 +64,7 @@ Each task was committed atomically:
 2. **Task 2: Apply destination filters in the router loop** - `b44e97b` (feat)
 3. **Task 3: Persist destination filters in JSON + EEPROM** - `83fadbf` (feat)
 
-**Plan metadata:** `PENDING` (docs: complete plan)
+**Plan metadata:** `e08c6c9` (docs: complete plan)
 
 ## Files Created/Modified
 - `rp2040/midi_filters.h` - Declares destination filter helpers and config accessors.
