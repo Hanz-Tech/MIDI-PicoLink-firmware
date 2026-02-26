@@ -88,11 +88,11 @@ Plans:
   1. Serial, USB Device, and USB Host each have independent per-message-type filter matrices applied at the destination stage
   2. The Web UI can configure destination filters in addition to existing source filters
   3. Existing source filters continue to work unchanged alongside destination filters
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Add destination filter storage, routing checks, and config persistence
+- [ ] 05-02-PLAN.md — Expose destination filters in web configurator UI and validation
 
 ## Progress
 
