@@ -71,6 +71,7 @@ None yet.
 
 - Cross-core safety (ARCH-06) must be verified during Phase 1 — `routeMidiMessage()` called from both Core 0 and Core 1
 - Research flagged: Core 1 stack size may be tight under USB Host + TinyUSB + MIDI processing
+- READALL response verification not performed (device connection required).
 
 ## Session Continuity
 

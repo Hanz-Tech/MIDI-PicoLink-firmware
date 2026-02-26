@@ -81,7 +81,7 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
-None.
+- READALL response verification not performed (requires device connection).
 
 ## User Setup Required
 
@@ -89,6 +89,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 - Destination filters are stored and enforced; ready to update web configurator UI/validation.
+- Verify READALL output on hardware to confirm destFilters matrix shape.
 
 ---
 *Phase: 05-destination-midi-filtering*
