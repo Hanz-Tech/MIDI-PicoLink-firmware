@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Module Structure** - Split monolith into focused modules with centralized pin configuration
 - [x] **Phase 3: Non-Blocking Patterns** - Replace blocking delays with state machines for LEDs and IMU calibration
 - [ ] **Phase 4: Debug Infrastructure** - Separate debug logging from Web Serial and add compile-time control
+- [ ] **Phase 5: Destination MIDI Filtering** - Add per-destination filters alongside existing source filters
 
 ## Phase Details
 
@@ -79,6 +80,20 @@ Plans:
 - [ ] 04-01: TBD
 - [ ] 04-02: TBD
 
+### Phase 5: Destination MIDI Filtering
+**Goal**: Each output interface (Serial, USB Device, USB Host) has its own filter matrix while preserving existing source-side filters and Web UI control
+**Depends on**: Phase 3
+**Requirements**: FILT-01, FILT-02, FILT-03
+**Success Criteria** (what must be TRUE):
+  1. Serial, USB Device, and USB Host each have independent per-message-type filter matrices applied at the destination stage
+  2. The Web UI can configure destination filters in addition to existing source filters
+  3. Existing source filters continue to work unchanged alongside destination filters
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+- [ ] 05-02: TBD
+
 ## Progress
 
 **Execution Order:**
@@ -90,3 +105,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Module Structure | 2/2 | Complete | 2026-02-20 |
 | 3. Non-Blocking Patterns | 2/2 | Complete | 2026-02-23 |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
+| 5. Destination MIDI Filtering | 0/0 | Not started | - |

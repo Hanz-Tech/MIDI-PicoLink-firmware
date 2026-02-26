@@ -21,6 +21,12 @@ Requirements for initial milestone. Each maps to roadmap phases.
 - [x] **PERF-01**: LED blink patterns use non-blocking state machine driven by `millis()` instead of blocking `delay()` calls
 - [x] **PERF-02**: IMU calibration runs as a non-blocking state machine or on a separate core instead of blocking Core 0 for 4 seconds
 
+### MIDI Filtering
+
+- [ ] **FILT-01**: Each destination interface (Serial, USB Device, USB Host) has its own per-message-type filter matrix applied at the destination stage
+- [ ] **FILT-02**: Web configurator UI can view and update destination filter matrices alongside existing source filters
+- [ ] **FILT-03**: Source-side filters remain unchanged and continue to operate in addition to destination filters
+
 ## v2 Requirements
 
 Deferred to future milestones. Tracked but not in current roadmap.
@@ -94,6 +100,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-02 | Phase 3: Non-Blocking Patterns | Complete |
 | ARCH-04 | Phase 4: Debug Infrastructure | Pending |
 | ARCH-05 | Phase 4: Debug Infrastructure | Pending |
+| FILT-01 | Phase 5: Destination MIDI Filtering | Pending |
+| FILT-02 | Phase 5: Destination MIDI Filtering | Pending |
+| FILT-03 | Phase 5: Destination MIDI Filtering | Pending |
 
 **Coverage:**
 - v1 requirements: 8 total
@@ -102,4 +111,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-15*
-*Last updated: 2026-02-26 after Phase 1 gap closure*
+*Last updated: 2026-02-26 after adding Phase 5 filtering requirements*
