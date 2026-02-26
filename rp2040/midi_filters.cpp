@@ -4,12 +4,14 @@
 // Global filter array: [interface][message type]
 // true = message is filtered (blocked), false = message passes through
 static bool midiFilters[MIDI_INTERFACE_COUNT][MIDI_MSG_COUNT] = {0};
+static bool midiDestFilters[MIDI_INTERFACE_COUNT][MIDI_MSG_COUNT] = {0};
 
 void setupMidiFilters() {
     // Initialize all filters to false (no filtering)
     for (int interface = 0; interface < MIDI_INTERFACE_COUNT; interface++) {
         for (int msgType = 0; msgType < MIDI_MSG_COUNT; msgType++) {
             midiFilters[interface][msgType] = false;
+            midiDestFilters[interface][msgType] = false;
         }
     }
     
@@ -48,6 +50,27 @@ bool isMidiFiltered(MidiInterfaceType interface, MidiMsgType msgType) {
         return midiFilters[interface][msgType];
     }
     return false; // Default to not filtered if invalid parameters
+}
+
+void setMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType, bool enabled) {
+    if (interface < MIDI_INTERFACE_COUNT && msgType < MIDI_MSG_COUNT) {
+        midiDestFilters[interface][msgType] = enabled;
+    }
+}
+
+void enableMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType) {
+    setMidiDestFilter(interface, msgType, true);
+}
+
+void disableMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType) {
+    setMidiDestFilter(interface, msgType, false);
+}
+
+bool isMidiDestFiltered(MidiInterfaceType interface, MidiMsgType msgType) {
+    if (interface < MIDI_INTERFACE_COUNT && msgType < MIDI_MSG_COUNT) {
+        return midiDestFilters[interface][msgType];
+    }
+    return false;
 }
 
 void enableAllFilters(MidiInterfaceType interface) {
@@ -168,6 +191,21 @@ void setMidiFilterState(int interface, int msgType, bool state) {
     if (interface >= 0 && interface < MIDI_INTERFACE_COUNT && 
         msgType >= 0 && msgType < MIDI_MSG_COUNT) {
         midiFilters[interface][msgType] = state;
+    }
+}
+
+bool getMidiDestFilterState(int interface, int msgType) {
+    if (interface >= 0 && interface < MIDI_INTERFACE_COUNT && 
+        msgType >= 0 && msgType < MIDI_MSG_COUNT) {
+        return midiDestFilters[interface][msgType];
+    }
+    return false;
+}
+
+void setMidiDestFilterState(int interface, int msgType, bool state) {
+    if (interface >= 0 && interface < MIDI_INTERFACE_COUNT && 
+        msgType >= 0 && msgType < MIDI_MSG_COUNT) {
+        midiDestFilters[interface][msgType] = state;
     }
 }
 
