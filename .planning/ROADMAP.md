@@ -91,8 +91,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Add destination filter storage, routing checks, and config persistence
-- [ ] 05-02-PLAN.md — Expose destination filters in web configurator UI and validation
+- [x] 05-01-PLAN.md — Add destination filter storage, routing checks, and config persistence
+- [x] 05-02-PLAN.md — Expose destination filters in web configurator UI and validation
 
 ## Progress
 
@@ -105,4 +105,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Module Structure | 2/2 | Complete | 2026-02-20 |
 | 3. Non-Blocking Patterns | 2/2 | Complete | 2026-02-23 |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
-| 5. Destination MIDI Filtering | 0/0 | Not started | - |
+| 5. Destination MIDI Filtering | 2/2 | Complete | 2026-02-26 |
