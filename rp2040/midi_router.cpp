@@ -172,6 +172,10 @@ void routeMidiMessage(MidiSource source, const MidiMessage &msg, byte destMask) 
             continue;
         }
 
+        if (isMidiDestFiltered(destEntry.iface, msg.type)) {
+            continue;
+        }
+
         forwardToInterface(destEntry.iface, msg);
     }
 
