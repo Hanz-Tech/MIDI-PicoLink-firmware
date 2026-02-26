@@ -12,7 +12,7 @@ This milestone transforms the 811-line monolithic firmware into a modular, maint
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Generic MIDI Router** - Consolidate 33+ duplicated handlers into single routing function with cross-core safety
+- [x] **Phase 1: Generic MIDI Router** - Consolidate 33+ duplicated handlers into single routing function with cross-core safety
 - [ ] **Phase 2: Module Structure** - Split monolith into focused modules with centralized pin configuration
 - [x] **Phase 3: Non-Blocking Patterns** - Replace blocking delays with state machines for LEDs and IMU calibration
 - [ ] **Phase 4: Debug Infrastructure** - Separate debug logging from Web Serial and add compile-time control
@@ -28,12 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No duplicated routing logic exists — each MIDI handler calls `routeMidiMessage()` with message type, source, and data
   3. Cross-core shared variables (`midi_host_mounted`, `midi_dev_addr`, `isConnectedToComputer`) are marked `volatile` and access is synchronized with appropriate primitives (spinlocks or mutexes)
   4. MIDI messages route correctly between all three interfaces with the same filtering behavior as before the refactor
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create midi_router module with routeMidiMessage() + cross-core safety (ARCH-06)
-- [ ] 01-02-PLAN.md — Rewire all 33+ handlers to use routeMidiMessage() + verify compilation (ARCH-01)
-- [ ] 01-04-PLAN.md — Route IMU-generated MIDI CCs through routeMidiMessage() (gap closure)
+- [x] 01-01-PLAN.md — Create midi_router module with routeMidiMessage() + cross-core safety (ARCH-06)
+- [x] 01-02-PLAN.md — Rewire all 33+ handlers to use routeMidiMessage() + verify compilation (ARCH-01)
+- [x] 01-03-PLAN.md — Normalize serial velocity-0 NoteOn to NoteOff routing (UAT gap closure)
+- [x] 01-04-PLAN.md — Route IMU-generated MIDI CCs through routeMidiMessage() (gap closure)
 
 ### Phase 2: Module Structure
 **Goal**: The monolithic rp2040.ino is split into focused modules with all hardware pin assignments in one place, creating clear homes for the router refactor and future features
@@ -85,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Generic MIDI Router | 0/2 | Planned | - |
+| 1. Generic MIDI Router | 4/4 | Complete | 2026-02-26 |
 | 2. Module Structure | 2/2 | Complete | 2026-02-20 |
 | 3. Non-Blocking Patterns | 2/2 | Complete | 2026-02-23 |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
