@@ -5,21 +5,29 @@
 #include <EEPROM.h>
 
  // EEPROM layout: 
- // - MIDI filters: 3*8 = 24 bytes (bools as bytes)
+ // - Source MIDI filters: 3*8 = 24 bytes (bools as bytes)
+ // - Destination MIDI filters: 3*8 = 24 bytes (bools as bytes)
  // - Channels: 16 bytes (bools as bytes)  
- // - IMU config: ~50 bytes
- // Total: ~90 bytes
-#define CONFIG_EEPROM_SIZE 100
+ // - IMU config: 27 bytes
+ // Total: 91 bytes
+#define CONFIG_EEPROM_SIZE 128
 #define EEPROM_START_ADDR 0
 
 void saveConfigToEEPROM() {
     EEPROM.begin(CONFIG_EEPROM_SIZE);
     int addr = EEPROM_START_ADDR;
     
-    // Save midiFilters
+    // Save source midiFilters
     for (int iface = 0; iface < MIDI_INTERFACE_COUNT; ++iface) {
         for (int msg = 0; msg < MIDI_MSG_COUNT; ++msg) {
             EEPROM.write(addr++, getMidiFilterState(iface, msg) ? 1 : 0);
+        }
+    }
+
+    // Save destination midiFilters
+    for (int iface = 0; iface < MIDI_INTERFACE_COUNT; ++iface) {
+        for (int msg = 0; msg < MIDI_MSG_COUNT; ++msg) {
+            EEPROM.write(addr++, getMidiDestFilterState(iface, msg) ? 1 : 0);
         }
     }
     
@@ -83,10 +91,17 @@ void loadConfigFromEEPROM() {
     EEPROM.begin(CONFIG_EEPROM_SIZE);
     int addr = EEPROM_START_ADDR;
     
-    // Load midiFilters
+    // Load source midiFilters
     for (int iface = 0; iface < MIDI_INTERFACE_COUNT; ++iface) {
         for (int msg = 0; msg < MIDI_MSG_COUNT; ++msg) {
             setMidiFilterState(iface, msg, EEPROM.read(addr++) ? true : false);
+        }
+    }
+
+    // Load destination midiFilters
+    for (int iface = 0; iface < MIDI_INTERFACE_COUNT; ++iface) {
+        for (int msg = 0; msg < MIDI_MSG_COUNT; ++msg) {
+            setMidiDestFilterState(iface, msg, EEPROM.read(addr++) ? true : false);
         }
     }
     
@@ -168,6 +183,14 @@ void configToJson(JsonDocument& doc) {
             ifaceArr.add(getMidiFilterState(iface, msg));
         }
     }
+    // Destination Filters
+    JsonArray destFilters = doc["destFilters"].to<JsonArray>();
+    for (int iface = 0; iface < MIDI_INTERFACE_COUNT; ++iface) {
+        JsonArray ifaceArr = destFilters.add<JsonArray>();
+        for (int msg = 0; msg < MIDI_MSG_COUNT; ++msg) {
+            ifaceArr.add(getMidiDestFilterState(iface, msg));
+        }
+    }
     // Channels
     JsonArray channels = doc["channels"].to<JsonArray>();
     for (int ch = 0; ch < 16; ++ch) {
@@ -213,6 +236,46 @@ bool updateConfigFromJson(const JsonDocument& doc) {
         // Process inner array with indexed loop
         for (int msg = 0; msg < MIDI_MSG_COUNT; msg++) {
             setMidiFilterState(iface, msg, ifaceArr[msg].as<bool>());
+        }
+    }
+
+    // Destination filters (optional for backward compatibility)
+    JsonArray destFiltersArr = ((JsonDocument&)doc)["destFilters"].as<JsonArray>();
+    if (!destFiltersArr.isNull()) {
+        if (destFiltersArr.size() != MIDI_INTERFACE_COUNT) {
+            Serial.print("[DEBUG] updateConfigFromJson: 'destFilters' array size is ");
+            Serial.print(destFiltersArr.size());
+            Serial.print(", expected ");
+            Serial.println(MIDI_INTERFACE_COUNT);
+            return false;
+        }
+
+        for (int iface = 0; iface < MIDI_INTERFACE_COUNT; iface++) {
+            JsonArray ifaceArr = destFiltersArr[iface].as<JsonArray>();
+            if (ifaceArr.isNull()) {
+                Serial.print("[DEBUG] updateConfigFromJson: destFilters[");
+                Serial.print(iface);
+                Serial.println("] is not an array (as<JsonArray>() isNull).");
+                return false;
+            }
+            if (ifaceArr.size() != MIDI_MSG_COUNT) {
+                Serial.print("[DEBUG] updateConfigFromJson: destFilters[");
+                Serial.print(iface);
+                Serial.print("] size is ");
+                Serial.print(ifaceArr.size());
+                Serial.print(", expected ");
+                Serial.println(MIDI_MSG_COUNT);
+                return false;
+            }
+            for (int msg = 0; msg < MIDI_MSG_COUNT; msg++) {
+                setMidiDestFilterState(iface, msg, ifaceArr[msg].as<bool>());
+            }
+        }
+    } else {
+        for (int iface = 0; iface < MIDI_INTERFACE_COUNT; iface++) {
+            for (int msg = 0; msg < MIDI_MSG_COUNT; msg++) {
+                setMidiDestFilterState(iface, msg, false);
+            }
         }
     }
 
