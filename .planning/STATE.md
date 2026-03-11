@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Reliable, low-latency MIDI routing between all three interfaces with configurable filtering
-**Current focus:** Phase 3 — Non-Blocking Patterns
+**Current focus:** Phase 4 — Debug Infrastructure
 
 ## Current Position
 
-**Phase:** 2 of 4 (Module Structure)
-**Current Plan:** 2
-**Total Plans in Phase:** 2
-**Status:** Phase complete — verified
-**Last Activity:** 2026-02-20
+**Phase:** 1 of 4 (Generic MIDI Router)
+**Current Plan:** 4
+**Total Plans in Phase:** 4
+**Status:** Phase complete — ready for verification
+**Last Activity:** 2026-02-26
 
-**Progress:** [████████░░] 80%
+**Progress:** [██████████] 100%
 
 ## Performance Metrics
 
@@ -37,9 +37,14 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 *Updated after each plan completion*
 | Phase 01 P02 | 8 min | 2 tasks | 5 files |
-| Phase 01 P03 | 1h 56m | 2 tasks | 3 files |
+| Phase 01 P03 | 1 min | 2 tasks | 0 files |
 | Phase 02 P01 | 0 min | 2 tasks | 5 files |
 | Phase 02 P02 | 4 min | 2 tasks | 8 files |
+| Phase 03-non-blocking-patterns P01 | 1 min | 2 tasks | 1 files |
+| Phase 03 P02 | 3 min | 2 tasks | 3 files |
+| Phase 01 P04 | 2 min | 2 tasks | 3 files |
+| Phase 05-destination-midi-filtering P01 | 0 min | 3 tasks | 5 files |
+| Phase 05-destination-midi-filtering P02 | 1 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -55,6 +60,10 @@ Recent decisions affecting current work:
 - [Phase 02]: Use preprocessor constants in pin_config.h for all GPIO assignments
 - [Phase 02-module-structure]: Keep USB Host handler registration via processMidiPacket and include setupUsbHostHandlers() as a placeholder for future initialization.
  - [Phase 02]: Verified module structure via compile + routing parity tests
+- [Phase 03-non-blocking-patterns]: None - followed plan as specified
+- [Phase 01]: Introduce destination-mask overload and internal source to route IMU CC output through router
+- [Phase 05-destination-midi-filtering]: Added destFilters as a separate JSON/EEPROM matrix to preserve source filter backward compatibility.
+- [Phase 05-destination-midi-filtering]: None - followed plan as specified
 
 ### Pending Todos
 
@@ -64,9 +73,10 @@ None yet.
 
 - Cross-core safety (ARCH-06) must be verified during Phase 1 — `routeMidiMessage()` called from both Core 0 and Core 1
 - Research flagged: Core 1 stack size may be tight under USB Host + TinyUSB + MIDI processing
+- READALL response verification not performed (device connection required).
 
 ## Session Continuity
 
-**Last session:** 2026-02-20T04:07:29Z
-**Stopped At:** Phase 2 verification approved
+**Last session:** 2026-02-26T03:30:35.452Z
+**Stopped At:** Completed 05-02-PLAN.md
 **Resume file:** None

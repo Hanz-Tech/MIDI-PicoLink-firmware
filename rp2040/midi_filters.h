@@ -35,6 +35,16 @@ void disableMidiFilter(MidiInterfaceType interface, MidiMsgType msgType);
 // Function to check if a message type is filtered for a specific interface
 bool isMidiFiltered(MidiInterfaceType interface, MidiMsgType msgType);
 
+// --- Destination MIDI Filters ---
+
+// Functions to enable/disable destination filters
+void setMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType, bool enabled);
+void enableMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType);
+void disableMidiDestFilter(MidiInterfaceType interface, MidiMsgType msgType);
+
+// Function to check if a message type is filtered for a specific destination interface
+bool isMidiDestFiltered(MidiInterfaceType interface, MidiMsgType msgType);
+
 // Helper functions to enable/disable all filters for a specific interface
 void enableAllFilters(MidiInterfaceType interface);
 void disableAllFilters(MidiInterfaceType interface);
@@ -68,6 +78,8 @@ void disableAllChannels();
 // Get/set filter state directly (used by config.cpp)
 bool getMidiFilterState(int interface, int msgType);
 void setMidiFilterState(int interface, int msgType, bool state);
+bool getMidiDestFilterState(int interface, int msgType);
+void setMidiDestFilterState(int interface, int msgType, bool state);
 bool getChannelEnabledState(int channel); // 0-15
 void setChannelEnabledState(int channel, bool state); // 0-15
 

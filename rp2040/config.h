@@ -25,6 +25,14 @@ bool updateConfigFromJson(const JsonDocument& doc);
     // USB HOST interface filters (8 booleans)
     [false, true, false, true, false, true, false, true]
   ],
+  "destFilters": [
+    // SERIAL destination filters (8 booleans)
+    [false, false, false, false, false, false, false, false],
+    // USB DEVICE destination filters (8 booleans)
+    [true, false, true, false, false, false, true, false],
+    // USB HOST destination filters (8 booleans)
+    [false, true, false, true, false, true, false, true]
+  ],
   "channels": [true, true, true, true, false, false, true, true, true, true, true, true, true, true, true, true]
 }
 
@@ -51,5 +59,4 @@ Each interface has 9 boolean values representing different MIDI message types:
 
 
 */
-
 

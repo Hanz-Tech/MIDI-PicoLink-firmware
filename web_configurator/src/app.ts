@@ -34,6 +34,15 @@ function buildConfigJson() {
     }
     filters.push(arr);
   }
+  const destFilters: boolean[][] = [];
+  for (let iface = 0; iface < 3; iface++) {
+    const arr: boolean[] = [];
+    for (let msg = 0; msg < 8; msg++) {
+      // REVERSED LOGIC: checked = allowed = true, so store !checked for blocked
+      arr.push(!(document.getElementById(`df-${iface}-${msg}`) as HTMLInputElement).checked);
+    }
+    destFilters.push(arr);
+  }
   const channels: boolean[] = [];
   for (let i = 0; i < 16; i++) {
     channels.push((document.getElementById(`ch-${i}`) as HTMLInputElement).checked);
@@ -84,6 +93,7 @@ function buildConfigJson() {
   return {
     command: "SAVEALL",
     filters,
+    destFilters,
     channels,
     imu
   };
@@ -99,13 +109,24 @@ function applyConfigToUI(config: any, skipValidation = false) {
     return false;
   }
   // Cast config to expected type
-  const cfg = config as { filters: boolean[][], channels: boolean[], imu?: any };
+  const cfg = config as { filters: boolean[][], destFilters?: boolean[][], channels: boolean[], imu?: any };
   
   // Set filters
   for (let iface = 0; iface < 3; iface++) {
     for (let msg = 0; msg < 8; msg++) {
       // REVERSED LOGIC: checked = allowed = true, so checked = !blocked
       (document.getElementById(`f-${iface}-${msg}`) as HTMLInputElement).checked = !cfg.filters[iface][msg];
+    }
+  }
+  const destFilters = cfg.destFilters || [
+    [false, false, false, false, false, false, false, false],
+    [false, false, false, false, false, false, false, false],
+    [false, false, false, false, false, false, false, false]
+  ];
+  for (let iface = 0; iface < 3; iface++) {
+    for (let msg = 0; msg < 8; msg++) {
+      // REVERSED LOGIC: checked = allowed = true, so checked = !blocked
+      (document.getElementById(`df-${iface}-${msg}`) as HTMLInputElement).checked = !destFilters[iface][msg];
     }
   }
   

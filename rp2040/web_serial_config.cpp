@@ -11,6 +11,7 @@
 static bool pendingEEPROMSave = false;
 static uint32_t eepromSaveTime = 0;
 static const uint32_t EEPROM_SAVE_DELAY_MS = 3000; // 3 seconds delay
+static bool imuCalibrationWasActive = false;
 
 void processWebSerialConfig() {
     while (Serial.available()) {
@@ -62,14 +63,19 @@ void processWebSerialConfig() {
             }
         } else if (command == "CALIBRATE_IMU") {
             Serial.println("{\"status\":\"Starting IMU calibration\",\"command\":\"CALIBRATE_IMU\",\"message\":\"Keep device flat and still for 10 seconds\"}");
-            calibrateIMU();
-            Serial.println("{\"status\":\"Success\",\"command\":\"CALIBRATE_IMU\",\"message\":\"IMU calibration complete\"}");
+            startIMUCalibration();
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);
             Serial.println("\"}");
         }
     }
+
+    bool imuCalibrationActive = isIMUCalibrationActive();
+    if (imuCalibrationWasActive && !imuCalibrationActive) {
+        Serial.println("{\"status\":\"Success\",\"command\":\"CALIBRATE_IMU\",\"message\":\"IMU calibration complete\"}");
+    }
+    imuCalibrationWasActive = imuCalibrationActive;
 }
 
 // Call this function regularly from the main loop to handle delayed EEPROM saves

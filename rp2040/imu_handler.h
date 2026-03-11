@@ -51,6 +51,9 @@ typedef struct {
 bool setupIMU();
 void loopIMU();
 void calibrateIMU();
+void startIMUCalibration();
+void updateIMUCalibration();
+bool isIMUCalibrationActive();
 bool getIMUAngles(float &roll, float &pitch, float &yaw);
 uint8_t angleToMidiCC(float angle, float range, uint8_t defaultValue);
 void sendIMUMidiCC(uint8_t channel, uint8_t cc, uint8_t value, bool toSerial, bool toUSBDevice, bool toUSBHost);

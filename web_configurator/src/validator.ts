@@ -22,6 +22,7 @@ export interface IMUConfig {
 export interface Rp2040Config {
   command: "SAVEALL";
   filters: boolean[][];
+  destFilters?: boolean[][];
   channels: boolean[];
   imu?: IMUConfig;
 }
@@ -71,6 +72,18 @@ const schema: JSONSchemaType<Rp2040Config> = {
         maxItems: 8,
         items: { type: "boolean" }
       }
+    },
+    destFilters: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "array",
+        minItems: 8,
+        maxItems: 8,
+        items: { type: "boolean" }
+      },
+      nullable: true
     },
     channels: {
       type: "array",
