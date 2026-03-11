@@ -165,10 +165,12 @@ void routeMidiMessage(MidiSource source, const MidiMessage &msg, byte destMask) 
         }
 
         if (destEntry.iface == MIDI_INTERFACE_USB_DEVICE && !isConnectedToComputer) {
+            noteRouteSkippedDeviceDisconnected();
             continue;
         }
 
-        if (destEntry.iface == MIDI_INTERFACE_USB_HOST && !midi_host_mounted) {
+        if (destEntry.iface == MIDI_INTERFACE_USB_HOST && !getMidiHostState(nullptr)) {
+            noteRouteSkippedHostDisconnected();
             continue;
         }
 

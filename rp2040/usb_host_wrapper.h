@@ -71,4 +71,20 @@ void usb_host_wrapper_task();
 
 // Thread-safe accessor for host state (returns mounted, writes addr)
 bool getMidiHostState(uint8_t *addr);
+
+// Runtime diagnostics counters for cross-core validation
+typedef struct {
+    uint32_t mountEvents;
+    uint32_t unmountEvents;
+    uint32_t txAttempts;
+    uint32_t txRejectedNoHost;
+    uint32_t txWriteFailures;
+    uint32_t routeSkippedHostDisconnected;
+    uint32_t routeSkippedDeviceDisconnected;
+} RuntimeDiagCounters;
+
+void resetRuntimeDiagCounters();
+void getRuntimeDiagCounters(RuntimeDiagCounters *outCounters);
+void noteRouteSkippedHostDisconnected();
+void noteRouteSkippedDeviceDisconnected();
 #endif

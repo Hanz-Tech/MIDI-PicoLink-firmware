@@ -7,4 +7,7 @@ void processWebSerialConfig();
 // Call this regularly in the main loop to handle delayed EEPROM saves
 void handleDelayedEEPROMSave();
 
+// Runtime diagnostics command support for validation plans
+void emitRuntimeDiagnostics();
+
 #endif // WEB_SERIAL_CONFIG_H

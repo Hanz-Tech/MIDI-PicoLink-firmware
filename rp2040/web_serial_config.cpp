@@ -4,6 +4,7 @@
 #include "version.h"
 #include "midi_filters.h"
 #include "imu_handler.h"
+#include "usb_host_wrapper.h"
 #include <ArduinoJson.h>
 #include <Arduino.h>
 
@@ -12,6 +13,35 @@ static bool pendingEEPROMSave = false;
 static uint32_t eepromSaveTime = 0;
 static const uint32_t EEPROM_SAVE_DELAY_MS = 3000; // 3 seconds delay
 static bool imuCalibrationWasActive = false;
+
+extern volatile bool isConnectedToComputer;
+
+void emitRuntimeDiagnostics() {
+    RuntimeDiagCounters counters = {};
+    uint8_t hostAddr = 0;
+    bool hostMounted = getMidiHostState(&hostAddr);
+
+    getRuntimeDiagCounters(&counters);
+
+    JsonDocument outDoc;
+    outDoc["status"] = "Success";
+    outDoc["command"] = "RUNTIME_DIAG";
+    outDoc["isConnectedToComputer"] = isConnectedToComputer;
+    outDoc["midi_host_mounted"] = hostMounted;
+    outDoc["midi_dev_addr"] = hostAddr;
+
+    JsonObject countersObj = outDoc["counters"].to<JsonObject>();
+    countersObj["mountEvents"] = counters.mountEvents;
+    countersObj["unmountEvents"] = counters.unmountEvents;
+    countersObj["txAttempts"] = counters.txAttempts;
+    countersObj["txRejectedNoHost"] = counters.txRejectedNoHost;
+    countersObj["txWriteFailures"] = counters.txWriteFailures;
+    countersObj["routeSkippedHostDisconnected"] = counters.routeSkippedHostDisconnected;
+    countersObj["routeSkippedDeviceDisconnected"] = counters.routeSkippedDeviceDisconnected;
+
+    serializeJson(outDoc, Serial);
+    Serial.println();
+}
 
 void processWebSerialConfig() {
     while (Serial.available()) {
@@ -45,6 +75,11 @@ void processWebSerialConfig() {
             outDoc["version"] = FIRMWARE_VERSION;
             serializeJson(outDoc, Serial);
             Serial.println();
+        } else if (command == "RUNTIME_DIAG") {
+            emitRuntimeDiagnostics();
+        } else if (command == "RUNTIME_DIAG_RESET") {
+            resetRuntimeDiagCounters();
+            Serial.println("{\"status\":\"Success\",\"command\":\"RUNTIME_DIAG_RESET\"}");
         } else if (command == "SAVEALL") {
             if (updateConfigFromJson(doc)) {
                 Serial.println("{\"debug\":\"Config applied in memory\"}");

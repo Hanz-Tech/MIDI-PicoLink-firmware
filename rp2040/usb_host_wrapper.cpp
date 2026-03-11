@@ -15,6 +15,8 @@ volatile bool midi_host_mounted = false;
 
 auto_init_mutex(midi_host_mutex);
 
+static RuntimeDiagCounters runtimeDiagCounters = {};
+
 // Add general USB host callbacks for debugging
 void tuh_mount_cb(uint8_t daddr) {
     dualPrintf("USB Host: Device mounted at address %u\r\n", daddr);
@@ -42,6 +44,7 @@ void tuh_midi_mount_cb(uint8_t idx, const tuh_midi_mount_cb_t* mount_cb_data) {
     mutex_enter_blocking(&midi_host_mutex);
     midi_dev_addr = mount_cb_data->daddr;
     midi_host_mounted = true;
+    runtimeDiagCounters.mountEvents++;
     mutex_exit(&midi_host_mutex);
     
     // Call application callback with estimated cable counts
@@ -60,6 +63,7 @@ void tuh_midi_umount_cb(uint8_t idx) {
         mutex_enter_blocking(&midi_host_mutex);
         midi_dev_addr = 0;
         midi_host_mounted = false;
+        runtimeDiagCounters.unmountEvents++;
         mutex_exit(&midi_host_mutex);
     }
 }
@@ -206,14 +210,54 @@ void processMidiPacket(uint8_t packet[4]) {
 
 // Send a MIDI packet to the host device
 bool sendMidiPacket(uint8_t packet[4]) {
-    if (!midi_host_mounted) return false;
+    mutex_enter_blocking(&midi_host_mutex);
+    runtimeDiagCounters.txAttempts++;
+    bool mounted = midi_host_mounted;
+    uint8_t currentIdx = midi_dev_idx;
+    if (!mounted) {
+        runtimeDiagCounters.txRejectedNoHost++;
+        mutex_exit(&midi_host_mutex);
+        return false;
+    }
+    mutex_exit(&midi_host_mutex);
 
-    if (!tuh_midi_packet_write(midi_dev_idx, packet)) {
+    if (!tuh_midi_packet_write(currentIdx, packet)) {
+        mutex_enter_blocking(&midi_host_mutex);
+        runtimeDiagCounters.txWriteFailures++;
+        mutex_exit(&midi_host_mutex);
         return false;
     }
 
-    tuh_midi_write_flush(midi_dev_idx);
+    tuh_midi_write_flush(currentIdx);
     return true;
+}
+
+void resetRuntimeDiagCounters() {
+    mutex_enter_blocking(&midi_host_mutex);
+    runtimeDiagCounters = {};
+    mutex_exit(&midi_host_mutex);
+}
+
+void getRuntimeDiagCounters(RuntimeDiagCounters *outCounters) {
+    if (outCounters == nullptr) {
+        return;
+    }
+
+    mutex_enter_blocking(&midi_host_mutex);
+    *outCounters = runtimeDiagCounters;
+    mutex_exit(&midi_host_mutex);
+}
+
+void noteRouteSkippedHostDisconnected() {
+    mutex_enter_blocking(&midi_host_mutex);
+    runtimeDiagCounters.routeSkippedHostDisconnected++;
+    mutex_exit(&midi_host_mutex);
+}
+
+void noteRouteSkippedDeviceDisconnected() {
+    mutex_enter_blocking(&midi_host_mutex);
+    runtimeDiagCounters.routeSkippedDeviceDisconnected++;
+    mutex_exit(&midi_host_mutex);
 }
 
 // Helper functions to send specific MIDI messages
