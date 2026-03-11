@@ -16,7 +16,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Module Structure** - Split monolith into focused modules with centralized pin configuration
 - [x] **Phase 3: Non-Blocking Patterns** - Replace blocking delays with state machines for LEDs and IMU calibration
 - [ ] **Phase 4: Debug Infrastructure** - Separate debug logging from Web Serial and add compile-time control
-- [ ] **Phase 5: Destination MIDI Filtering** - Add per-destination filters alongside existing source filters
+- [x] **Phase 5: Destination MIDI Filtering** - Add per-destination filters alongside existing source filters
+- [ ] **Phase 6: Runtime Safety Validation** - Validate cross-core safety, Core 1 stack headroom, and READALL behavior on hardware
 
 ## Phase Details
 
@@ -94,10 +95,24 @@ Plans:
 - [x] 05-01-PLAN.md — Add destination filter storage, routing checks, and config persistence
 - [x] 05-02-PLAN.md — Expose destination filters in web configurator UI and validation
 
+### Phase 6: Runtime Safety Validation
+**Goal**: Prove carried runtime concerns on real hardware are resolved or clearly bounded before additional feature work
+**Depends on**: Phase 5
+**Requirements**: ARCH-06
+**Success Criteria** (what must be TRUE):
+  1. Cross-core access patterns around MIDI routing state are validated under concurrent traffic and documented
+  2. Core 1 stack usage is measured under USB Host + TinyUSB + MIDI load and remains within safe headroom
+  3. Web Serial READALL response is verified on connected hardware without corruption or partial output
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Validate cross-core synchronization and stress-route behavior
+- [ ] 06-02-PLAN.md — Measure Core 1 stack headroom and verify READALL hardware response
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -106,3 +121,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 3. Non-Blocking Patterns | 2/2 | Complete | 2026-02-23 |
 | 4. Debug Infrastructure | 0/0 | Not started | - |
 | 5. Destination MIDI Filtering | 2/2 | Complete | 2026-02-26 |
+| 6. Runtime Safety Validation | 0/0 | Not started | - |
